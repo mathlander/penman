@@ -172,6 +172,9 @@ namespace PenmanApi.Controllers
         [Produces("application/json")]
         public IActionResult Update([FromBody]UpdateUserDto userDto)
         {
+            if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
+                return Unauthorized("You are not authorized to update user profile.");
+
             var author = _authorService.UpdateProfile(userDto.AuthorId, userDto.Username, userDto.Email, userDto.FirstName, userDto.MiddleName, userDto.LastName);
 
             if (author == null)
@@ -185,6 +188,9 @@ namespace PenmanApi.Controllers
         [Produces("application/json")]
         public IActionResult Password([FromBody]UpdatePasswordDto userDto)
         {
+            if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
+                return Unauthorized("You are not authorized to update user password.");
+
             var author = _authorService.UpdatePassword(userDto.AuthorId, userDto.Password);
 
             if (author == null)
@@ -196,6 +202,9 @@ namespace PenmanApi.Controllers
         [HttpDelete("delete")]
         public IActionResult Delete([FromQuery]DeleteUserDto userDto)
         {
+            if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
+                return Unauthorized("You are not authorized to delete user account.");
+
             var result = _authorService.Delete(userDto.AuthorId);
 
             if (result)

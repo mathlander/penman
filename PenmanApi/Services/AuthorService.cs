@@ -42,7 +42,7 @@ namespace PenmanApi.Services
         {
             var author = Read(username);
             var previousTokens = _dbContext.RefreshToken
-                .Where(token => token.AuthorId == author.AuthorId && token.IsRevoked.HasValue && !token.IsRevoked.Value!)
+                .Where(token => token.AuthorId == author.AuthorId && token.IsRevoked.HasValue && !token.IsRevoked.Value)
                 .ToList();
             foreach (var token in previousTokens)
                 token.IsRevoked = true;
