@@ -45,11 +45,32 @@ namespace PenmanApi.Controllers
             var author = _authorService.Authenticate(authDto.Username, authDto.Password);
 
             if (author == null)
-                return Unauthorized(new { Message = "Username or password is incorrect." });
+            {
+                var errorMessage = "Username or password is incorrect.";
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = errorMessage,
+                    DisplayErrorMessage = errorMessage
+                });
+            }
             else if (!author.IsDeleted.HasValue || author.IsDeleted.Value)
-                return Unauthorized(new { Message = "This username has been permanently deactiviated." });
+            {
+                var errorMessage = "This username has been permanently deactiviated.";
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = errorMessage,
+                    DisplayErrorMessage = errorMessage
+                });
+            }
             else if (!author.IsLocked.HasValue || author.IsLocked.Value)
-                return Unauthorized(new { Message = "This user has been locked.  Please contact system administrator." });
+            {
+                var errorMessage = "This user has been locked.  Please contact system administrator.";
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = errorMessage,
+                    DisplayErrorMessage = errorMessage
+                });
+            }
 
             var tokenExpiration = DateTime.Now.AddDays(7);
             var refreshTokenExpiration = DateTime.Now.AddDays(30);
@@ -89,15 +110,50 @@ namespace PenmanApi.Controllers
                 var isTokenValid = _authorService.ValidateRefreshToken(refreshDto.RefreshToken, out DecodedRefreshTokenClaims decodedRefreshTokenClaims, out Author author);
 
                 if (decodedRefreshTokenClaims.ExpiryDate < DateTime.Now)
-                    return Unauthorized(new { Message = "Refresh token has expired." });
+                {
+                    var errorMessage = "Refresh token has expired.";
+                    return Unauthorized(new ErrorResponseDto
+                    {
+                        InternalErrorMessage = errorMessage,
+                        DisplayErrorMessage = errorMessage
+                    });
+                }
                 else if (!isTokenValid)
-                    return Unauthorized(new { Message = "Invalid refresh token." });
+                {
+                    var errorMessage = "Invalid refresh token.";
+                    return Unauthorized(new ErrorResponseDto
+                    {
+                        InternalErrorMessage = errorMessage,
+                        DisplayErrorMessage = errorMessage
+                    });
+                }
                 else if (author == null)
-                    return Unauthorized(new { Message = "Unable to identify user associated to the refresh token provided." });
+                {
+                    var errorMessage = "Unable to identify user associated to the refresh token provided.";
+                    return Unauthorized(new ErrorResponseDto
+                    {
+                        InternalErrorMessage = errorMessage,
+                        DisplayErrorMessage = errorMessage
+                    });
+                }
                 else if (!author.IsDeleted.HasValue || author.IsDeleted.Value)
-                    return Unauthorized(new { Message = "This username has been permanently deactivated." });
+                {
+                    var errorMessage = "This username has been permanently deactivated.";
+                    return Unauthorized(new ErrorResponseDto
+                    {
+                        InternalErrorMessage = errorMessage,
+                        DisplayErrorMessage = errorMessage
+                    });
+                }
                 else if (!author.IsLocked.HasValue || author.IsLocked.Value)
-                    return Unauthorized(new { Message = "This user has been locked.  Please contact system administrator." });
+                {
+                    var errorMessage = "This user has been locked.  Please contact system administrator.";
+                    return Unauthorized(new ErrorResponseDto
+                    {
+                        InternalErrorMessage = errorMessage,
+                        DisplayErrorMessage = errorMessage
+                    });
+                }
 
                 var tokenExpiration = DateTime.Now.AddDays(7);
                 var refreshTokenExpiration = DateTime.Now.AddDays(183);
@@ -129,9 +185,8 @@ namespace PenmanApi.Controllers
             {
                 Console.WriteLine($"Encountered exception while attempting to satisfy refreshToken claim.  Message: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
+                return BadRequest(new ErrorResponseDto(ex));
             }
-
-            return Unauthorized(new { Message = "Failed to generate new authentication token from the provided refresh token." });
         }
 
         [AllowAnonymous]
@@ -144,7 +199,13 @@ namespace PenmanApi.Controllers
             var author = _authorService.Create(userDto.Username, userDto.Email, userDto.Password, userDto.FirstName, userDto.MiddleName, userDto.LastName);
 
             if (author == null)
-                return BadRequest(new { Message = "Failed to create new user." });
+            {
+                return BadRequest(new ErrorResponseDto
+                {
+                    InternalErrorMessage = "Failed to create new user.",
+                    DisplayErrorMessage = "Failed to create new user.",
+                });
+            }
 
             var createUserResponseDto = _mapper.Map<CreateUserResponseDto>(author);
 
@@ -173,12 +234,25 @@ namespace PenmanApi.Controllers
         public IActionResult Update([FromBody]UpdateUserDto userDto)
         {
             if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
-                return Unauthorized("You are not authorized to update user profile.");
+            {
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = "Specified userId does not match the authenticated userId.",
+                    DisplayErrorMessage = "You are not authorized to update user profile.",
+                });
+            }
 
             var author = _authorService.UpdateProfile(userDto.AuthorId, userDto.Username, userDto.Email, userDto.FirstName, userDto.MiddleName, userDto.LastName);
 
             if (author == null)
-                return BadRequest(new { Message = "Failed to update user." });
+            {
+                var errorMessage = "Failed to update user.";
+                return BadRequest(new ErrorResponseDto
+                {
+                    InternalErrorMessage = errorMessage,
+                    DisplayErrorMessage = errorMessage,
+                });
+            }
 
             return Ok(_mapper.Map<UpdateUserResponseDto>(author));
         }
@@ -189,12 +263,24 @@ namespace PenmanApi.Controllers
         public IActionResult Password([FromBody]UpdatePasswordDto userDto)
         {
             if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
-                return Unauthorized("You are not authorized to update user password.");
+            {
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = "Specified userId does not match the authenticated userId.",
+                    DisplayErrorMessage = "You are not authorized to update user password.",
+                });
+            }
 
             var author = _authorService.UpdatePassword(userDto.AuthorId, userDto.Password);
 
             if (author == null)
-                return BadRequest(new { Message = "Failed to udpate password." });
+            {
+                return BadRequest(new ErrorResponseDto
+                {
+                    InternalErrorMessage = "Authenticated userId matched the specified userId, but the user has since disappeared from the database.",
+                    DisplayErrorMessage = "Failed to udpate password.",
+                });
+            }
 
             return Ok(_mapper.Map<UpdateUserResponseDto>(author));
         }
@@ -203,7 +289,13 @@ namespace PenmanApi.Controllers
         public IActionResult Delete([FromQuery]DeleteUserDto userDto)
         {
             if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
-                return Unauthorized("You are not authorized to delete user account.");
+            {
+                return Unauthorized(new ErrorResponseDto
+                {
+                    InternalErrorMessage = "Specified userId does not match the authenticated userId.",
+                    DisplayErrorMessage = "You are not authorized to delete user account.",
+                });
+            }
 
             var result = _authorService.Delete(userDto.AuthorId);
 
