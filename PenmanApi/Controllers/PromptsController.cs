@@ -1,17 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
-using PenmanApi.Config;
 using PenmanApi.Dtos.Prompts;
 using PenmanApi.Services;
 using PenmanApi.Models;
@@ -80,7 +72,7 @@ namespace PenmanApi.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Encountered exception while attempting to satisfy refreshToken claim.  Message: {ex.Message}");
+                Console.WriteLine($"Encountered exception while attempting to satisfy read all prompts.  Message: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
                 return BadRequest(new ErrorResponseDto(ex));
             }
@@ -100,7 +92,7 @@ namespace PenmanApi.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Encountered exception while attempting to satisfy refreshToken claim.  Message: {ex.Message}");
+                Console.WriteLine($"Encountered exception while attempting to read prompt.  Message: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
                 return BadRequest(new ErrorResponseDto(ex));
             }
@@ -113,18 +105,18 @@ namespace PenmanApi.Controllers
         [Produces("application/json")]
         public IActionResult Update([FromBody]UpdatePromptDto promptDto)
         {
-            UpdatePromptDto responseDto = null;
+            UpdatePromptResponseDto responseDto = null;
             try
             {
                 if (_httpContextAccessor.GetCurrentUserId() != promptDto.AuthorId)
                     throw new UnauthorizedAccessException("You are not authorized to update the specified prompt.");
 
                 var prompt = _promptService.UpdatePrompt(promptDto.PromptId, promptDto.AuthorId, promptDto.Title, promptDto.Body);
-                responseDto = _mapper.Map<UpdatePromptDto>(prompt);
+                responseDto = _mapper.Map<UpdatePromptResponseDto>(prompt);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Encountered exception while attempting to satisfy refreshToken claim.  Message: {ex.Message}");
+                Console.WriteLine($"Encountered exception while attempting to update prompt.  Message: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
                 return BadRequest(new ErrorResponseDto(ex));
             }
@@ -149,7 +141,7 @@ namespace PenmanApi.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Encountered exception while attempting to satisfy refreshToken claim.  Message: {ex.Message}");
+                Console.WriteLine($"Encountered exception while attempting to delete prompt.  Message: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
                 return BadRequest(new ErrorResponseDto(ex));
             }
