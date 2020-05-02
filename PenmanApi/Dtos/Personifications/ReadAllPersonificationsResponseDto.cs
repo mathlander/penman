@@ -10,7 +10,7 @@ namespace PenmanApi.Dtos.Personifications
 
         public override string ToString()
         {
-            return $"Prompts: [{String.Join("\r\n\r\n/***/\r\n\r\n", Personifications.AsEnumerable())}]";
+            return $"Personifications: [{String.Join("\r\n\r\n/***/\r\n\r\n", Personifications.AsEnumerable())}]";
         }
     }
 }
