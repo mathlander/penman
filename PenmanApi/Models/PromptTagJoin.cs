@@ -7,7 +7,9 @@ namespace PenmanApi.Models
     {
         public long PromptId { get; set; }
         public long TagId { get; set; }
+        public long AuthorId { get; set; }
 
+        public virtual Author Author { get; set; }
         public virtual Prompt Prompt { get; set; }
         public virtual Tag Tag { get; set; }
     }

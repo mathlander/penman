@@ -136,7 +136,13 @@ namespace PenmanApi
 
             // Scoped instances are generated anew for each request.
             services.AddScoped<IAuthorService, AuthorService>();
+            services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IPersonificationService, PersonificationService>();
             services.AddScoped<IPromptService, PromptService>();
+            services.AddScoped<IRelationshipService, RelationshipService>();
+            services.AddScoped<IShortService, ShortService>();
+            services.AddScoped<ITagService, TagService>();
+            services.AddScoped<ITimelineService, TimelineService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

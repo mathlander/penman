@@ -289,66 +289,96 @@ FOR EACH ROW EXECUTE FUNCTION chapter_modified();
 CREATE TABLE IF NOT EXISTS prompt_tag_join (
 	prompt_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_PromptTagJoin_PromptId FOREIGN KEY (prompt_id)
 		REFERENCES prompt(prompt_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_PromptTagJoin_TagId FOREIGN KEY (tag_id)
 		REFERENCES tag(tag_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptTagJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (prompt_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS prompt_personification_join (
 	prompt_id BIGINT NOT NULL,
 	personification_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_PromptPersonificationJoin_PromptId FOREIGN KEY (prompt_id)
 		REFERENCES prompt(prompt_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_PromptPersonificationJoin_PersonificationId FOREIGN KEY (personification_id)
 		REFERENCES personification(personification_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptPersonificationJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (prompt_id, personification_id)
 );
 
 CREATE TABLE IF NOT EXISTS personification_tag_join (
 	personification_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_PersonificationTagJoin_PersonificationId FOREIGN KEY (personification_id)
 		REFERENCES personification(personification_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_PersonificationTagJoin_TagId FOREIGN KEY (tag_id)
 		REFERENCES tag(tag_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PersonificationTagJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (personification_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS short_personification_join (
 	short_id BIGINT NOT NULL,
 	personification_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_ShortPersonificationJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_ShortPersonificationJoin_PersonificationId FOREIGN KEY (personification_id)
 		REFERENCES personification(personification_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPersonificationJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (short_id, personification_id)
 );
 
 CREATE TABLE IF NOT EXISTS short_tag_join (
 	short_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_ShortTagJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_ShortTagJoin_TagId FOREIGN KEY (tag_id)
 		REFERENCES tag(tag_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortTagJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (short_id, tag_id)
 );
 
 CREATE TABLE IF NOT EXISTS short_prompt_join (
 	short_id BIGINT NOT NULL,
 	prompt_id BIGINT NOT NULL,
+	author_id BIGINT NOT NULL,
 	CONSTRAINT FK_ShortPromptJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
 	CONSTRAINT FK_ShortPromptJoin_PromptId FOREIGN KEY (prompt_id)
 		REFERENCES prompt(prompt_id) MATCH FULL
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPromptJoin_AuthorId FOREIGN KEY (author_id)
+		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	PRIMARY KEY (short_id, prompt_id)
 );
 

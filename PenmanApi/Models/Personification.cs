@@ -5,6 +5,13 @@ namespace PenmanApi.Models
 {
     public partial class Personification
     {
+        public Personification()
+        {
+            PersonificationTagJoin = new HashSet<PersonificationTagJoin>();
+            PromptPersonificationJoin = new HashSet<PromptPersonificationJoin>();
+            ShortPersonificationJoin = new HashSet<ShortPersonificationJoin>();
+        }
+
         public long PersonificationId { get; set; }
         public long AuthorId { get; set; }
         public string FirstName { get; set; }
@@ -15,5 +22,8 @@ namespace PenmanApi.Models
         public DateTime ModifiedDate { get; set; }
 
         public virtual Author Author { get; set; }
+        public virtual ICollection<PersonificationTagJoin> PersonificationTagJoin { get; set; }
+        public virtual ICollection<PromptPersonificationJoin> PromptPersonificationJoin { get; set; }
+        public virtual ICollection<ShortPersonificationJoin> ShortPersonificationJoin { get; set; }
     }
 }

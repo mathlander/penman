@@ -32,6 +32,14 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("author");
 
+                entity.HasIndex(e => e.Email)
+                    .HasName("unique_author_email")
+                    .IsUnique();
+
+                entity.HasIndex(e => e.Username)
+                    .HasName("unique_author_username")
+                    .IsUnique();
+
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
                 entity.Property(e => e.CreatedDate)
@@ -215,7 +223,8 @@ namespace PenmanApi.Models
 
             modelBuilder.Entity<PersonificationTagJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.PersonificationId, e.TagId })
+                    .HasName("personification_tag_join_pkey");
 
                 entity.ToTable("personification_tag_join");
 
@@ -223,13 +232,20 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.PersonificationTagJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_personificationtagjoin_authorid");
+
                 entity.HasOne(d => d.Personification)
-                    .WithMany()
+                    .WithMany(p => p.PersonificationTagJoin)
                     .HasForeignKey(d => d.PersonificationId)
                     .HasConstraintName("fk_personificationtagjoin_personificationid");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany()
+                    .WithMany(p => p.PersonificationTagJoin)
                     .HasForeignKey(d => d.TagId)
                     .HasConstraintName("fk_personificationtagjoin_tagid");
             });
@@ -269,28 +285,37 @@ namespace PenmanApi.Models
 
             modelBuilder.Entity<PromptPersonificationJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.PromptId, e.PersonificationId })
+                    .HasName("prompt_personification_join_pkey");
 
                 entity.ToTable("prompt_personification_join");
 
-                entity.Property(e => e.PersonificationId).HasColumnName("personification_id");
-
                 entity.Property(e => e.PromptId).HasColumnName("prompt_id");
 
+                entity.Property(e => e.PersonificationId).HasColumnName("personification_id");
+
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.PromptPersonificationJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_promptpersonificationjoin_authorid");
+
                 entity.HasOne(d => d.Personification)
-                    .WithMany()
+                    .WithMany(p => p.PromptPersonificationJoin)
                     .HasForeignKey(d => d.PersonificationId)
                     .HasConstraintName("fk_promptpersonificationjoin_personificationid");
 
                 entity.HasOne(d => d.Prompt)
-                    .WithMany()
+                    .WithMany(p => p.PromptPersonificationJoin)
                     .HasForeignKey(d => d.PromptId)
                     .HasConstraintName("fk_promptpersonificationjoin_promptid");
             });
 
             modelBuilder.Entity<PromptTagJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.PromptId, e.TagId })
+                    .HasName("prompt_tag_join_pkey");
 
                 entity.ToTable("prompt_tag_join");
 
@@ -298,13 +323,20 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.PromptTagJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_prompttagjoin_authorid");
+
                 entity.HasOne(d => d.Prompt)
-                    .WithMany()
+                    .WithMany(p => p.PromptTagJoin)
                     .HasForeignKey(d => d.PromptId)
                     .HasConstraintName("fk_prompttagjoin_promptid");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany()
+                    .WithMany(p => p.PromptTagJoin)
                     .HasForeignKey(d => d.TagId)
                     .HasConstraintName("fk_prompttagjoin_tagid");
             });
@@ -393,49 +425,66 @@ namespace PenmanApi.Models
 
             modelBuilder.Entity<ShortPersonificationJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.ShortId, e.PersonificationId })
+                    .HasName("short_personification_join_pkey");
 
                 entity.ToTable("short_personification_join");
 
-                entity.Property(e => e.PersonificationId).HasColumnName("personification_id");
-
                 entity.Property(e => e.ShortId).HasColumnName("short_id");
 
+                entity.Property(e => e.PersonificationId).HasColumnName("personification_id");
+
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.ShortPersonificationJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_shortpersonificationjoin_authorid");
+
                 entity.HasOne(d => d.Personification)
-                    .WithMany()
+                    .WithMany(p => p.ShortPersonificationJoin)
                     .HasForeignKey(d => d.PersonificationId)
                     .HasConstraintName("fk_shortpersonificationjoin_personificationid");
 
                 entity.HasOne(d => d.Short)
-                    .WithMany()
+                    .WithMany(p => p.ShortPersonificationJoin)
                     .HasForeignKey(d => d.ShortId)
                     .HasConstraintName("fk_shortpersonificationjoin_shortid");
             });
 
             modelBuilder.Entity<ShortPromptJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.ShortId, e.PromptId })
+                    .HasName("short_prompt_join_pkey");
 
                 entity.ToTable("short_prompt_join");
 
-                entity.Property(e => e.PromptId).HasColumnName("prompt_id");
-
                 entity.Property(e => e.ShortId).HasColumnName("short_id");
 
+                entity.Property(e => e.PromptId).HasColumnName("prompt_id");
+
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.ShortPromptJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_shortpromptjoin_authorid");
+
                 entity.HasOne(d => d.Prompt)
-                    .WithMany()
+                    .WithMany(p => p.ShortPromptJoin)
                     .HasForeignKey(d => d.PromptId)
                     .HasConstraintName("fk_shortpromptjoin_promptid");
 
                 entity.HasOne(d => d.Short)
-                    .WithMany()
+                    .WithMany(p => p.ShortPromptJoin)
                     .HasForeignKey(d => d.ShortId)
                     .HasConstraintName("fk_shortpromptjoin_shortid");
             });
 
             modelBuilder.Entity<ShortTagJoin>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.ShortId, e.TagId })
+                    .HasName("short_tag_join_pkey");
 
                 entity.ToTable("short_tag_join");
 
@@ -443,13 +492,20 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
+                entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.HasOne(d => d.Author)
+                    .WithMany(p => p.ShortTagJoin)
+                    .HasForeignKey(d => d.AuthorId)
+                    .HasConstraintName("fk_shorttagjoin_authorid");
+
                 entity.HasOne(d => d.Short)
-                    .WithMany()
+                    .WithMany(p => p.ShortTagJoin)
                     .HasForeignKey(d => d.ShortId)
                     .HasConstraintName("fk_shorttagjoin_shortid");
 
                 entity.HasOne(d => d.Tag)
-                    .WithMany()
+                    .WithMany(p => p.ShortTagJoin)
                     .HasForeignKey(d => d.TagId)
                     .HasConstraintName("fk_shorttagjoin_tagid");
             });

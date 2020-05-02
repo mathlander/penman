@@ -7,7 +7,9 @@ namespace PenmanApi.Models
     {
         public long ShortId { get; set; }
         public long PersonificationId { get; set; }
+        public long AuthorId { get; set; }
 
+        public virtual Author Author { get; set; }
         public virtual Personification Personification { get; set; }
         public virtual Short Short { get; set; }
     }
