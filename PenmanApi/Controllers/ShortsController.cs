@@ -125,6 +125,7 @@ namespace PenmanApi.Controllers
         }
 
         [HttpDelete("delete")]
+        [Produces("application/json")]
         public IActionResult Delete([FromQuery]DeleteShortDto shortDto)
         {
             try

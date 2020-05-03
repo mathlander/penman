@@ -26,7 +26,6 @@ namespace PenmanApi.Controllers
             _promptService = promptService;
         }
 
-        [AllowAnonymous]
         [HttpPost("create")]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -125,6 +124,7 @@ namespace PenmanApi.Controllers
         }
 
         [HttpDelete("delete")]
+        [Produces("application/json")]
         public IActionResult Delete([FromQuery]DeletePromptDto promptDto)
         {
             try

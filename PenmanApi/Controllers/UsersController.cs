@@ -286,6 +286,7 @@ namespace PenmanApi.Controllers
         }
 
         [HttpDelete("delete")]
+        [Produces("application/json")]
         public IActionResult Delete([FromQuery]DeleteUserDto userDto)
         {
             if (_httpContextAccessor.GetCurrentUserId() != userDto.AuthorId)
