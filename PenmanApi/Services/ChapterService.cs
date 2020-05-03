@@ -39,14 +39,14 @@ namespace PenmanApi.Services
             return chapter;
         }
 
-        public IEnumerable<Chapter> ReadAll(long authorId)
+        public IEnumerable<Chapter> ReadAll(long authorId, long bookId)
         {
             return _dbContext.Chapter
-                .Where(c => c.AuthorId == authorId)
+                .Where(c => c.AuthorId == authorId && c.BookId == bookId)
                 .ToArray();
         }
 
-        public Chapter UpdateChapter(long chapterId, long authorId, long bookId, long timelineId, string title)
+        public Chapter UpdateChapter(long chapterId, long authorId, long bookId, long? timelineId, string title)
         {
             var chapter = Read(chapterId, authorId);
             chapter.Title = title;
