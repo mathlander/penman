@@ -46,11 +46,12 @@ namespace PenmanApi.Services
                 .ToArray();
         }
 
-        public Chapter UpdateChapter(long chapterId, long authorId, long bookId, long? timelineId, string title)
+        public Chapter UpdateChapter(long chapterId, long authorId, long bookId, long? timelineId, int sortOrder, string title)
         {
             var chapter = Read(chapterId, authorId);
+            chapter.SortOrder = sortOrder;
             chapter.Title = title;
-            chapter.TimelineId = timelineId <= 0 ? (long?) null : timelineId;
+            chapter.TimelineId = timelineId;
             _dbContext.Chapter.Update(chapter);
             _dbContext.SaveChanges();
 

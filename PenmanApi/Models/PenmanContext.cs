@@ -155,6 +155,10 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.TimelineId).HasColumnName("timeline_id");
 
+                entity.Property(e => e.SortOrder)
+                    .IsRequired()
+                    .HasColumnName("sort_order");
+
                 entity.Property(e => e.Title)
                     .IsRequired()
                     .HasColumnName("title")

@@ -15,11 +15,14 @@ namespace PenmanApi.Dtos.Chapters
         public long? TimelineId { get; set; }
 
         [Required]
+        public int SortOrder { get; set; }
+
+        [Required]
         public string Title { get; set; }
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, BookId: {BookId}, TimelineId: {TimelineId}, Title: {Title}";
+            return $"AuthorId: {AuthorId}, BookId: {BookId}, TimelineId: {TimelineId}, SortOrder: {SortOrder}, Title: {Title}";
         }
     }
 }

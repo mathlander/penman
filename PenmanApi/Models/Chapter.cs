@@ -9,6 +9,7 @@ namespace PenmanApi.Models
         public long AuthorId { get; set; }
         public long BookId { get; set; }
         public long? TimelineId { get; set; }
+        public int SortOrder { get; set; }
         public string Title { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
