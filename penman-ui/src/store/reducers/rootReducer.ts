@@ -5,6 +5,7 @@ import bookReducer from './bookReducer';
 import chapterReducer from './chapterReducer';
 import personificationReducer from './personificationReducer';
 import promptReducer from './promptReducer';
+import shortReducer from './shortReducer';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
     chapter: chapterReducer,
     personification: personificationReducer,
     prompt: promptReducer,
+    short: shortReducer,
 });
 
 export default rootReducer;

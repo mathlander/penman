@@ -279,6 +279,53 @@ export interface IPromptReducerAction {
 
 
 /**
+ * ShortReducer
+ */
+
+export interface IShort {
+    shortId: number;
+    authorId: number;
+    body: string;
+    title: string;
+    eventStart: Date;
+    eventEnd: Date;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface IShortCollection {
+    shorts: IShort[];
+};
+
+export interface IShortErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface IShortState {
+    shorts: Record<number, IShort | undefined>;
+    shortErrorState: IShortErrorState;
+    pendingActions: IShortReducerAction[];
+};
+
+export interface IShortReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: IShortErrorState;
+};
+
+
+
+/**
+ * ShortActions
+ */
+
+//
+
+
+
+/**
  * Forms
  */
 
