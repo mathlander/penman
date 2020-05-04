@@ -187,6 +187,53 @@ export interface IChapterReducerAction {
 
 
 /**
+ * PersonificationReducer
+ */
+
+export interface IPersonification {
+    personificationId: number;
+    authorId: number;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    birthday: Date;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface IPersonificationCollection {
+    personifications: IPersonification[];
+};
+
+export interface IPersonificationErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface IPersonificationState {
+    personifications: Record<number, IPersonification | undefined>;
+    personificationErrorState: IPersonificationErrorState;
+    pendingActions: IPersonificationReducerAction[];
+};
+
+export interface IPersonificationReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: IPersonificationErrorState;
+};
+
+
+
+/**
+ * PersonificationActions
+ */
+
+//
+
+
+
+/**
  * Forms
  */
 
