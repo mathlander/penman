@@ -234,6 +234,51 @@ export interface IPersonificationReducerAction {
 
 
 /**
+ * PromptReducer
+ */
+
+export interface IPrompt {
+    promptId: number;
+    authorId: number;
+    body: string;
+    title: string;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface IPromptCollection {
+    prompts: IPrompt[];
+};
+
+export interface IPromptErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface IPromptState {
+    prompts: Record<number, IPrompt | undefined>;
+    promptErrorState: IPromptErrorState;
+    pendingActions: IPromptReducerAction[];
+};
+
+export interface IPromptReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: IPromptErrorState;
+};
+
+
+
+/**
+ * PromptActions
+ */
+
+//
+
+
+
+/**
  * Forms
  */
 
