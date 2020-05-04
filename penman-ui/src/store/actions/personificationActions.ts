@@ -20,6 +20,7 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
                 config
             ).then((response) => {
                 const personificationResponseDto: IPersonification = response.data;
+                personificationResponseDto.birthday = new Date(response.data.birthday);
                 personificationResponseDto.createdDate = new Date(response.data.createdDate);
                 personificationResponseDto.modifiedDate = new Date(response.data.modifiedDate);
                 dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_SUCCESS, payload: personificationResponseDto, timestamp });

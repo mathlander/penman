@@ -419,3 +419,24 @@ export interface INewPersonification {
     birthday: Date;
 };
 
+export interface INewPrompt {
+    authorId: number;
+    body: string;
+    title: string;
+};
+
+export interface INewShort {
+    authorId: number;
+    body: string;
+    title: string;
+    eventStart: Date;
+    eventEnd: Date;
+};
+
+export interface INewTimeline {
+    authorId: number;
+    title: string;
+    eventStart: Date;
+    eventEnd: Date;
+};
+
