@@ -403,3 +403,11 @@ export interface INewBook {
     title: string;
 }
 
+export interface INewChapter {
+    authorId: number;
+    bookId: number;
+    timelineId?: number;
+    title: string;
+    sortOrder: number;
+}
+
