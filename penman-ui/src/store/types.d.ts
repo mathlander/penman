@@ -401,7 +401,7 @@ export interface INewBook {
     authorId: number;
     timelineId?: number;
     title: string;
-}
+};
 
 export interface INewChapter {
     authorId: number;
@@ -409,5 +409,13 @@ export interface INewChapter {
     timelineId?: number;
     title: string;
     sortOrder: number;
-}
+};
+
+export interface INewPersonification {
+    authorId: number;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    birthday: Date;
+};
 
