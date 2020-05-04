@@ -1,25 +1,47 @@
 import { authConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthenticationState, IAuthReducerAction } from '../types';
 
-const localStorageUser: IAuthenticatedUser | null = JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null');
 const nullErrorState: IAuthenticationErrorState = {
     internalErrorMessage: null,
     displayErrorMessage: null,
 };
-const initState: IAuthenticationState = {
-    authenticatedUser: localStorageUser,
-    authErrorState: nullErrorState,
+
+const readLocalStorage = () : IAuthenticationState => {
+    return JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null') || {
+        authenticatedUser: null,
+        authErrorState: nullErrorState,
+        pendingActions: [],
+    };
 };
 
+const updateLocalStorage = (state: IAuthenticationState) : void => {
+    localStorage.setItem(authConstants.AUTH_LOCAL_STORAGE_KEY, JSON.stringify({
+        authenticatedUser: state.authenticatedUser,
+        authErrorState: nullErrorState,
+        pendingActions: state.pendingActions,
+    }));
+};
+
+const initState: IAuthenticationState = readLocalStorage();
+
 const authReducer = (state: IAuthenticationState = initState, action: IAuthReducerAction): IAuthenticationState => {
+    let nextState = initState;
     switch (action.type) {
+        case authConstants.LOGIN:
+            return {
+                ...state,
+                pendingActions: [...state.pendingActions, action],
+            };
         case authConstants.LOGIN_SUCCESS:
             const authenticatedUser: IAuthenticatedUser = action.payload;
-            return {
+            nextState = {
                 ...state,
                 authenticatedUser: authenticatedUser,
                 authErrorState: nullErrorState,
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
+            updateLocalStorage(nextState);
+            return nextState;
         case authConstants.LOGIN_ERROR:
             return {
                 ...state,
@@ -27,25 +49,35 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                     internalErrorMessage: 'An unidentified error occurred while attempting to authenticate the user.',
                     displayErrorMessage: 'An error occurred while attempting to authenticate the user.',
                 },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
         case authConstants.LOGOUT:
+            // remove all cached items from all states/reducers on logout
             localStorage.clear();
-            return {
+            nextState = {
                 ...state,
                 authenticatedUser: null,
                 authErrorState: nullErrorState,
+                pendingActions: [],
             };
+            return nextState;
 
         case authConstants.REFRESH_TOKEN:
-            return state;
+            nextState = {
+                ...state,
+                pendingActions: [...state.pendingActions, action],
+            };
+            return nextState;
         case authConstants.REFRESH_TOKEN_SUCCESS:
             const refreshedUser: IAuthenticatedUser = action.payload;
-            localStorage.setItem(authConstants.AUTH_LOCAL_STORAGE_KEY, JSON.stringify(refreshedUser));
-            return {
+            nextState = {
                 ...state,
                 authenticatedUser: refreshedUser,
                 authErrorState: nullErrorState,
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
+            updateLocalStorage(nextState);
+            return nextState;
         case authConstants.REFRESH_TOKEN_ERROR:
             localStorage.clear();
             return {
@@ -55,26 +87,34 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                     internalErrorMessage: 'An unidentified error occurred while attempting to authenticate the user with the cached refresh token.',
                     displayErrorMessage: 'An error occurred while attempting to authenticate the user.',
                 },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
 
         case authConstants.CREATE_NEW_USER:
-            return state;
+            nextState = {
+                ...state,
+                pendingActions: [...state.pendingActions, action],
+            };
+            return nextState;
         case authConstants.CREATE_NEW_USER_SUCCESS:
             const createdUser: IAuthenticatedUser = action.payload;
-            localStorage.setItem(authConstants.AUTH_LOCAL_STORAGE_KEY, JSON.stringify(createdUser));
-            return {
+            nextState = {
                 ...state,
                 authenticatedUser: createdUser,
                 authErrorState: nullErrorState,
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
+            updateLocalStorage(nextState);
+            return nextState;
         case authConstants.CREATE_NEW_USER_ERROR:
             return {
                 ...state,
                 authErrorState: action.error || {
                     internalErrorMessage: 'An unidentified error occurred while attempting to create a new user.',
                     displayErrorMessage: 'An error occurred while attempting to create a new user.',
-                }
-            }
+                },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
 
         default:
             return state;

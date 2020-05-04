@@ -5,7 +5,9 @@
  */
 
 export interface IRootState {
-    auth: IAuthenticationState
+    auth: IAuthenticationState,
+    welcome: IWelcomeState,
+    book: IBookState,
 };
 
 
@@ -36,9 +38,11 @@ export interface IAuthenticationErrorState {
 export interface IAuthenticationState {
     authenticatedUser: IAuthenticatedUser | null;
     authErrorState: IAuthenticationErrorState;
+    pendingActions: IAuthReducerAction[];
 };
 
 export interface IAuthReducerAction {
+    timestamp: number;
     type: string;
     payload?: any;
     error?: IAuthenticationErrorState;
@@ -89,6 +93,52 @@ export interface ILeadEmail {
 };
 
 
+
+/**
+ * BookReducer
+ */
+
+export interface IBook {
+    bookId: number;
+    authorId: number;
+    timelineId?: number;
+    title: string;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface IBookCollection {
+    books: IBook[];
+};
+
+export interface IBookErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface IBookState {
+    books: Record<number, IBook | undefined>;
+    bookErrorState: IBookErrorState;
+    pendingActions: IBookReducerAction[];
+};
+
+export interface IBookReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: IBookErrorState;
+};
+
+
+
+/**
+ * BookActions
+ */
+
+//
+
+
+
 /**
  * Forms
  */
@@ -101,6 +151,9 @@ export interface INewUser {
 	lastName: string;
 };
 
-// export type AppThunk<ReturnType = void> = ThunkAction<
-//     ReturnType,
-// >;
+export interface INewBook {
+    authorId: number;
+    timelineId?: number;
+    title: string;
+}
+

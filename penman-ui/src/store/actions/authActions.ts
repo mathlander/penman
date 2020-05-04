@@ -28,7 +28,8 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser) => {
                 'Content-Type': 'application/json',
             }
         };
-        dispatch({ type: authConstants.REFRESH_TOKEN });
+        const timestamp = Date.now();
+        dispatch({ type: authConstants.REFRESH_TOKEN, timestamp });
         axios.post(
             url,
             data,
@@ -39,13 +40,13 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser) => {
             refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
             refreshResponseDto.createdDate = new Date(response.data.createdDate);
             refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-            dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto });
+            dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp });
         }).catch((err) => {
             const error: IAuthenticationErrorState = {
                 internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
                 displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
             }
-            dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error });
+            dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp });
         });
     };
 };
@@ -59,7 +60,8 @@ export const signIn = (credentials: IAuthCredentials) => {
                 'Content-Type': 'application/json',
             }
         };
-        dispatch({ type: authConstants.LOGIN, payload: credentials });
+        const timestamp = Date.now();
+        dispatch({ type: authConstants.LOGIN, payload: credentials, timestamp });
         axios.post(
             url,
             data,
@@ -70,20 +72,20 @@ export const signIn = (credentials: IAuthCredentials) => {
             authResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
             authResponseDto.createdDate = new Date(response.data.createdDate);
             authResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-            dispatch({ type: authConstants.LOGIN_SUCCESS, payload: authResponseDto });
+            dispatch({ type: authConstants.LOGIN_SUCCESS, payload: authResponseDto, timestamp });
         }).catch((err) => {
             const error: IAuthenticationErrorState = {
                 internalErrorMessage: `Received the following error while attempting to authenticate the user with the provided credentials: ${err}`,
                 displayErrorMessage: `Invalid login.  Please try again.`
             }
-            dispatch({ type: authConstants.LOGIN_ERROR, error: error });
+            dispatch({ type: authConstants.LOGIN_ERROR, error: error, timestamp });
         });
     };
 };
 
 export const signOut = () => {
     return (dispatch: any) => {
-        dispatch({ type: authConstants.LOGOUT });
+        dispatch({ type: authConstants.LOGOUT, timestamp: Date.now() });
     };
 };
 
@@ -96,7 +98,8 @@ export const signUp = (newUser: INewUser) => {
                 'Content-Type': 'application/json',
             }
         };
-        dispatch({ type: authConstants.CREATE_NEW_USER, payload: newUser });
+        const timestamp = Date.now();
+        dispatch({ type: authConstants.CREATE_NEW_USER, payload: newUser, timestamp });
         axios.post(
             url,
             data,
@@ -107,14 +110,14 @@ export const signUp = (newUser: INewUser) => {
             createResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
             createResponseDto.createdDate = new Date(response.data.createdDate);
             createResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-            dispatch({ type: authConstants.CREATE_NEW_USER_SUCCESS, payload: createResponseDto });
+            dispatch({ type: authConstants.CREATE_NEW_USER_SUCCESS, payload: createResponseDto, timestamp });
         }).catch((err) => {
             // probably need a switch or series of if/else if statements to confirm this assumption
             const error: IAuthenticationErrorState = {
                 internalErrorMessage: `Received the following error while attempting to create the user with the provided form data: ${err}`,
                 displayErrorMessage: `Unable to register the user.  Usernames and email must both be unique.`
             }
-            dispatch({ type: authConstants.CREATE_NEW_USER_ERROR, error: error });
+            dispatch({ type: authConstants.CREATE_NEW_USER_ERROR, error: error, timestamp });
         });
     };
 };
