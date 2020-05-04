@@ -5,10 +5,16 @@
  */
 
 export interface IRootState {
-    auth: IAuthenticationState,
-    welcome: IWelcomeState,
-    book: IBookState,
+    auth: IAuthenticationState;
+    welcome: IWelcomeState;
+    book: IBookState;
+    chapter: IChapterState;
+    personification: IPersonificationState;
+    prompt: IPromptState;
+    short: IShortState;
+    timeline: ITimelineState;
 };
+
 
 
 /**
@@ -46,6 +52,7 @@ export interface IAuthReducerAction {
     type: string;
     payload?: any;
     error?: IAuthenticationErrorState;
+    memento?: () => void;
 };
 
 
@@ -76,6 +83,7 @@ export interface IWelcomeReducerAction {
     type: string;
     payload?: any;
     error?: IWelcomeErrorState;
+    memento?: () => void;
 };
 
 
@@ -127,6 +135,7 @@ export interface IBookReducerAction {
     type: string;
     payload?: any;
     error?: IBookErrorState;
+    memento?: () => void;
 };
 
 
@@ -174,6 +183,7 @@ export interface IChapterReducerAction {
     type: string;
     payload?: any;
     error?: IChapterErrorState;
+    memento?: () => void;
 };
 
 
@@ -221,6 +231,7 @@ export interface IPersonificationReducerAction {
     type: string;
     payload?: any;
     error?: IPersonificationErrorState;
+    memento?: () => void;
 };
 
 
@@ -266,6 +277,7 @@ export interface IPromptReducerAction {
     type: string;
     payload?: any;
     error?: IPromptErrorState;
+    memento?: () => void;
 };
 
 
@@ -313,6 +325,7 @@ export interface IShortReducerAction {
     type: string;
     payload?: any;
     error?: IShortErrorState;
+    memento?: () => void;
 };
 
 
@@ -359,6 +372,7 @@ export interface ITimelineReducerAction {
     type: string;
     payload?: any;
     error?: ITimelineErrorState;
+    memento?: () => void;
 };
 
 
