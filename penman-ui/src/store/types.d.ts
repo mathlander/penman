@@ -140,6 +140,53 @@ export interface IBookReducerAction {
 
 
 /**
+ * ChapterReducer
+ */
+
+export interface IChapter {
+    chapterId: number;
+    bookId: number;
+    authorId: number;
+    timelineId?: number;
+    title: string;
+    sortOrder: number;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface IChapterCollection {
+    chapters: IChapter[];
+};
+
+export interface IChapterErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface IChapterState {
+    chapters: Record<number, IChapter | undefined>;
+    chapterErrorState: IChapterErrorState;
+    pendingActions: IChapterReducerAction[];
+};
+
+export interface IChapterReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: IChapterErrorState;
+};
+
+
+
+/**
+ * ChapterActions
+ */
+
+//
+
+
+
+/**
  * Forms
  */
 
