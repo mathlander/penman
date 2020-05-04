@@ -326,6 +326,52 @@ export interface IShortReducerAction {
 
 
 /**
+ * TimelineReducer
+ */
+
+export interface ITimeline {
+    timelineId: number;
+    authorId: number;
+    title: string;
+    eventStart: Date;
+    eventEnd: Date;
+    createdDate: Date;
+    modifiedDate: Date;
+};
+
+export interface ITimelineCollection {
+    timelines: ITimeline[];
+};
+
+export interface ITimelineErrorState {
+    internalErrorMessage?: string | null;
+    displayErrorMessage?: string | null;
+};
+
+export interface ITimelineState {
+    timelines: Record<number, ITimeline | undefined>;
+    timelineErrorState: ITimelineErrorState;
+    pendingActions: ITimelineReducerAction[];
+};
+
+export interface ITimelineReducerAction {
+    timestamp: number;
+    type: string;
+    payload?: any;
+    error?: ITimelineErrorState;
+};
+
+
+
+/**
+ * TimelineActions
+ */
+
+//
+
+
+
+/**
  * Forms
  */
 
