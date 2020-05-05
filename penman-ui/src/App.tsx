@@ -4,6 +4,11 @@ import { Switch, Route } from 'react-router-dom';
 import { history } from './store/reducers/rootReducer';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './components/dashboard/Dashboard';
+import BooksPage from './components/book/BooksPage';
+import PersonificationsPage from './components/personification/PersonificationsPage';
+import PromptsPage from './components/prompt/PromptsPage';
+import ShortsPage from './components/short/ShortsPage';
+import TimelinesPage from './components/timeline/TimelinesPage';
 import SignIn from './components/auth/SignIn';
 import SignUp from './components/auth/SignUp';
 import Welcome from './components/welcome/Welcome';
@@ -16,10 +21,15 @@ function App() {
         <Navbar />
         <Switch>
           <Route exact path="/" component={Welcome} />
-          <Route path="/welcome" component={Welcome} />
-          <Route path="/dashboard" component={Dashboard} />
           <Route path="/signin" component={SignIn} />
           <Route path="/signup" component={SignUp} />
+          <Route path="/welcome" component={Welcome} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/books" component={BooksPage} />
+          <Route path="/personifications" component={PersonificationsPage} />
+          <Route path="/prompts" component={PromptsPage} />
+          <Route path="/shorts" component={ShortsPage} />
+          <Route path="/timelines" component={TimelinesPage} />
         </Switch>
       </div>
     </ConnectedRouter>

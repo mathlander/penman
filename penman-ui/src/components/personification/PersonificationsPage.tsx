@@ -1,19 +1,26 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
-import { IRootState, IAuthenticatedUser } from '../../store/types';
+import { IRootState, IAuthenticatedUser, INewPersonification, IPersonification } from '../../store/types';
 import { isAuthTokenExpired } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
+import { create, read, readAll, update, deleteEntity } from '../../store/actions/personificationActions';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
+        personifications: state.personification.personifications,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
+        create: (user: IAuthenticatedUser, newPersonification: INewPersonification) => dispatch(create(user, newPersonification)),
+        read: (user: IAuthenticatedUser, personificationId: number) => dispatch(read(user, personificationId)),
+        readAll: (user: IAuthenticatedUser) => dispatch(readAll(user)),
+        update: (user: IAuthenticatedUser, personification: IPersonification) => dispatch(update(user, personification)),
+        deleteEntity: (user: IAuthenticatedUser, personification: IPersonification) => dispatch(deleteEntity(user, personification)),
     };
 };
 
@@ -22,7 +29,7 @@ const localConnector = connect(mapStateToProps, mapDispatchToProps);
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
-class Dashboard extends Component<Props> {
+class PersonificationsPage extends Component<Props> {
     render() {
         const { authenticatedUser } = this.props;
         if (!authenticatedUser || this.props.isTokenExpired(authenticatedUser)) {
@@ -51,4 +58,4 @@ class Dashboard extends Component<Props> {
     }
 }
 
-export default localConnector(Dashboard);
+export default localConnector(PersonificationsPage);

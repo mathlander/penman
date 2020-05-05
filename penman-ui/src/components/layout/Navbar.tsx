@@ -31,9 +31,9 @@ class Navbar extends Component<Props> {
     }
 
     componentDidMount() {
-        const menus = document.querySelectorAll(".side-menu");
-        const sideNavMenus = M.Sidenav.init(menus, {
-            edge: 'right'
+        const sideMenuElements = document.querySelectorAll(".side-menu");
+        const sideNavMenus = M.Sidenav.init(sideMenuElements, {
+            edge: 'left'
         });
         this.setState({ sideNavMenus });
     }
@@ -51,10 +51,10 @@ class Navbar extends Component<Props> {
                 {/** top nav */}
                 <nav className="z-depth-0">
                     <div className="nav-wrapper container">
-                        <Link to="/" className="left">Penman's<span>Pen</span></Link>
-                        <span className="right grey-text text-darken-1">
+                        <span className="left grey-text text-darken-1">
                             <i className="material-icons sidenav-trigger" data-target="side-menu">menu</i>
                         </span>
+                        <Link to="/" className="right">Penman's<span>Pen</span></Link>
                     </div>
                 </nav>
 
@@ -63,19 +63,21 @@ class Navbar extends Component<Props> {
                     <li><Link to="#" className="subheader">PENMAN</Link></li>
                     <li><div className="divider"></div></li>
                     {!authenticatedUser &&
-                        <li><NavLink to="/signup" className="waves-effect left-align">Signup</NavLink></li>
-                    }
-                    {!authenticatedUser &&
-                        <li><NavLink to="/signin" className="waves-effect left-align">Login</NavLink></li>
-                    }
-                    {!!authenticatedUser &&
-                        <li><NavLink to="/dashboard" className="waves-effect left-align">Dashboard</NavLink></li>
+                        <>
+                            <li><NavLink to="/signup" className="waves-effect left-align">Signup</NavLink></li>
+                            <li><NavLink to="/signin" className="waves-effect left-align">Login</NavLink></li>
+                        </>
                     }
                     {!!authenticatedUser &&
-                        <li><NavLink to="/create" className="waves-effect left-align">New Project</NavLink></li>
-                    }
-                    {!!authenticatedUser &&
-                        <li><NavLink to="/" className="waves-effect left-align" onClick={this.props.signOut}>Log Out</NavLink></li>
+                        <>
+                            <li><NavLink to="/dashboard" className="waves-effect left-align">Dashboard</NavLink></li>
+                            <li><NavLink to="/books" className="waves-effect left-align">Books</NavLink></li>
+                            <li><NavLink to="/personifications" className="waves-effect left-align">Personifications</NavLink></li>
+                            <li><NavLink to="/prompts" className="waves-effect left-align">Prompts</NavLink></li>
+                            <li><NavLink to="/shorts" className="waves-effect left-align">Shorts</NavLink></li>
+                            <li><NavLink to="/timelines" className="waves-effect left-align">Timelines</NavLink></li>
+                            <li><NavLink to="/" className="waves-effect left-align" onClick={this.props.signOut}>Log Out</NavLink></li>
+                        </>
                     }
                 </ul>
             </>
