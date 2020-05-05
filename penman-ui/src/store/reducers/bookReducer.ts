@@ -7,11 +7,16 @@ const nullErrorState: IBookErrorState = {
 };
 
 const readLocalStorage = () : IBookState => {
-    return JSON.parse(localStorage.getItem(bookConstants.BOOK_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IBookState = JSON.parse(localStorage.getItem(bookConstants.BOOK_LOCAL_STORAGE_KEY) || 'null') || {
         books: {},
         bookErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.books).forEach((book) => {
+        book.createdDate = new Date(book.createdDate);
+        book.modifiedDate = new Date(book.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IBookState) : void => {

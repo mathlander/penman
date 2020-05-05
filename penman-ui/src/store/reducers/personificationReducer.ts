@@ -7,11 +7,17 @@ const nullErrorState: IPersonificationErrorState = {
 };
 
 const readLocalStorage = () : IPersonificationState => {
-    return JSON.parse(localStorage.getItem(personificationConstants.PERSONIFICATION_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IPersonificationState = JSON.parse(localStorage.getItem(personificationConstants.PERSONIFICATION_LOCAL_STORAGE_KEY) || 'null') || {
         personifications: {},
         personificationErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.personifications).forEach((personification) => {
+        personification.birthday = new Date(personification.birthday);
+        personification.createdDate = new Date(personification.createdDate);
+        personification.modifiedDate = new Date(personification.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IPersonificationState) : void => {

@@ -7,11 +7,16 @@ const nullErrorState: IChapterErrorState = {
 };
 
 const readLocalStorage = () : IChapterState => {
-    return JSON.parse(localStorage.getItem(chapterConstants.CHAPTER_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IChapterState = JSON.parse(localStorage.getItem(chapterConstants.CHAPTER_LOCAL_STORAGE_KEY) || 'null') || {
         chapters: {},
         chapterErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.chapters).forEach((chapter) => {
+        chapter.createdDate = new Date(chapter.createdDate);
+        chapter.modifiedDate = new Date(chapter.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IChapterState) : void => {

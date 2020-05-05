@@ -7,11 +7,18 @@ const nullErrorState: ITimelineErrorState = {
 };
 
 const readLocalStorage = () : ITimelineState => {
-    return JSON.parse(localStorage.getItem(timelineConstants.TIMELINE_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: ITimelineState = JSON.parse(localStorage.getItem(timelineConstants.TIMELINE_LOCAL_STORAGE_KEY) || 'null') || {
         timelines: {},
         timelineErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.timelines).forEach((timeline) => {
+        timeline.eventStart = new Date(timeline.eventStart);
+        timeline.eventEnd = new Date(timeline.eventEnd);
+        timeline.createdDate = new Date(timeline.createdDate);
+        timeline.modifiedDate = new Date(timeline.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: ITimelineState) : void => {

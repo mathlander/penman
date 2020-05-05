@@ -7,11 +7,18 @@ const nullErrorState: IShortErrorState = {
 };
 
 const readLocalStorage = () : IShortState => {
-    return JSON.parse(localStorage.getItem(shortConstants.SHORT_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IShortState = JSON.parse(localStorage.getItem(shortConstants.SHORT_LOCAL_STORAGE_KEY) || 'null') || {
         shorts: {},
         shortErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.shorts).forEach((short) => {
+        short.eventStart = new Date(short.eventStart);
+        short.eventEnd = new Date(short.eventEnd);
+        short.createdDate = new Date(short.createdDate);
+        short.modifiedDate = new Date(short.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IShortState) : void => {

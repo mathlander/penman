@@ -125,7 +125,7 @@ export interface IBookErrorState {
 };
 
 export interface IBookState {
-    books: Record<number, IBook | undefined>;
+    books: Record<number, IBook>;
     bookErrorState: IBookErrorState;
     pendingActions: IBookReducerAction[];
 };
@@ -173,7 +173,7 @@ export interface IChapterErrorState {
 };
 
 export interface IChapterState {
-    chapters: Record<number, IChapter | undefined>;
+    chapters: Record<number, IChapter>;
     chapterErrorState: IChapterErrorState;
     pendingActions: IChapterReducerAction[];
 };
@@ -221,7 +221,7 @@ export interface IPersonificationErrorState {
 };
 
 export interface IPersonificationState {
-    personifications: Record<number, IPersonification | undefined>;
+    personifications: Record<number, IPersonification>;
     personificationErrorState: IPersonificationErrorState;
     pendingActions: IPersonificationReducerAction[];
 };
@@ -267,7 +267,7 @@ export interface IPromptErrorState {
 };
 
 export interface IPromptState {
-    prompts: Record<number, IPrompt | undefined>;
+    prompts: Record<number, IPrompt>;
     promptErrorState: IPromptErrorState;
     pendingActions: IPromptReducerAction[];
 };
@@ -315,7 +315,7 @@ export interface IShortErrorState {
 };
 
 export interface IShortState {
-    shorts: Record<number, IShort | undefined>;
+    shorts: Record<number, IShort>;
     shortErrorState: IShortErrorState;
     pendingActions: IShortReducerAction[];
 };
@@ -362,7 +362,7 @@ export interface ITimelineErrorState {
 };
 
 export interface ITimelineState {
-    timelines: Record<number, ITimeline | undefined>;
+    timelines: Record<number, ITimeline>;
     timelineErrorState: ITimelineErrorState;
     pendingActions: ITimelineReducerAction[];
 };

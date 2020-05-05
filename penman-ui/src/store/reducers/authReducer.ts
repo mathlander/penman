@@ -7,11 +7,18 @@ const nullErrorState: IAuthenticationErrorState = {
 };
 
 const readLocalStorage = () : IAuthenticationState => {
-    return JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState = JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null') || {
         authenticatedUser: null,
         authErrorState: nullErrorState,
         pendingActions: [],
     };
+    if (localStorageState.authenticatedUser) {
+        localStorageState.authenticatedUser.tokenExpirationDate = new Date(localStorageState.authenticatedUser.tokenExpirationDate);
+        localStorageState.authenticatedUser.refreshTokenExpirationDate = new Date(localStorageState.authenticatedUser.refreshTokenExpirationDate);
+        localStorageState.authenticatedUser.createdDate = new Date(localStorageState.authenticatedUser.createdDate);
+        localStorageState.authenticatedUser.modifiedDate = new Date(localStorageState.authenticatedUser.modifiedDate);
+    }
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IAuthenticationState) : void => {

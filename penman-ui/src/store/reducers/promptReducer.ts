@@ -7,11 +7,16 @@ const nullErrorState: IPromptErrorState = {
 };
 
 const readLocalStorage = () : IPromptState => {
-    return JSON.parse(localStorage.getItem(promptConstants.PROMPT_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IPromptState = JSON.parse(localStorage.getItem(promptConstants.PROMPT_LOCAL_STORAGE_KEY) || 'null') || {
         prompts: {},
         promptErrorState: nullErrorState,
         pendingActions: [],
     };
+    Object.values(localStorageState.prompts).forEach((prompt) => {
+        prompt.createdDate = new Date(prompt.createdDate);
+        prompt.modifiedDate = new Date(prompt.modifiedDate);
+    });
+    return localStorageState;
 };
 
 const updateLocalStorage = (state: IPromptState) : void => {
