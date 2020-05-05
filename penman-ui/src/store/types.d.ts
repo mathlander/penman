@@ -1,10 +1,12 @@
 // import { ThunkAction } from 'redux-thunk';
+import { History } from 'history';
 
 /**
  * RootReducer
  */
 
 export interface IRootState {
+    router: RouterState<History<HistoryLocationState>>;
     auth: IAuthenticationState;
     welcome: IWelcomeState;
     book: IBookState;

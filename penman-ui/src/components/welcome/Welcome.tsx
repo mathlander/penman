@@ -1,6 +1,6 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { Redirect } from 'react-router-dom';
+import { push } from 'connected-react-router';
 import M from 'materialize-css';
 import { IRootState, IAuthenticatedUser, ILeadEmail } from '../../store/types';
 import { isAuthTokenExpired } from '../../store/actions/authActions';
@@ -66,7 +66,7 @@ class Welcome extends Component<Props> {
     render() {
         const { authenticatedUser } = this.props;
         if (authenticatedUser && !this.props.isTokenExpired(authenticatedUser)) {
-            return <Redirect to='/dashboard' />
+            push('/dashboard');
         }
         return (
             <div className="welcome container">

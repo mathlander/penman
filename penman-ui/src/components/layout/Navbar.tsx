@@ -8,6 +8,7 @@ import { IRootState, IAuthenticatedUser } from '../../store/types';
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
+        route: state.router.location.pathname,
     };
 };
 
@@ -25,20 +26,26 @@ type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
 class Navbar extends Component<Props> {
+    state: { sideNavMenus: M.Sidenav[] | null } = {
+        sideNavMenus: null,
+    }
+
     componentDidMount() {
         const menus = document.querySelectorAll(".side-menu");
-        M.Sidenav.init(menus, {
+        const sideNavMenus = M.Sidenav.init(menus, {
             edge: 'right'
+        });
+        this.setState({ sideNavMenus });
+    }
+
+    componentDidUpdate() {
+        this.state.sideNavMenus?.forEach(sideNavMenu => {
+            sideNavMenu.close();
         });
     }
 
     render() {
         const { authenticatedUser } = this.props;
-        const initials = !authenticatedUser
-            ? ''
-            : ((authenticatedUser.firstName && authenticatedUser.firstName[0]) || '') + 
-                ((authenticatedUser.middleName && authenticatedUser.middleName[0]) || '') +
-                ((authenticatedUser.lastName && authenticatedUser.lastName[0]) || '');
         return (
             <>
                 {/** top nav */}
@@ -62,13 +69,13 @@ class Navbar extends Component<Props> {
                         <li><NavLink to="/signin" className="waves-effect left-align">Login</NavLink></li>
                     }
                     {!!authenticatedUser &&
+                        <li><NavLink to="/dashboard" className="waves-effect left-align">Dashboard</NavLink></li>
+                    }
+                    {!!authenticatedUser &&
                         <li><NavLink to="/create" className="waves-effect left-align">New Project</NavLink></li>
                     }
                     {!!authenticatedUser &&
                         <li><NavLink to="/" className="waves-effect left-align" onClick={this.props.signOut}>Log Out</NavLink></li>
-                    }
-                    {!!authenticatedUser &&
-                        <li><NavLink to="/" className="btn btn-floating pink lighten-1"><span className="badge white-text center-align">{initials}</span></NavLink></li>
                     }
                 </ul>
             </>
