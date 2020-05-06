@@ -3,7 +3,6 @@ import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewPrompt, IPrompt } from '../../store/types';
 import { isAuthTokenExpired } from '../../store/actions/authActions';
-import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
 import NewPromptCard from './NewPromptCard';
 import PromptCard from './PromptCard';

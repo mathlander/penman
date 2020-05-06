@@ -1,12 +1,11 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { push } from 'connected-react-router';
-import { IRootState, IAuthenticatedUser, INewPrompt, IPrompt } from '../../store/types';
-import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
+import { IRootState, IAuthenticatedUser, IPrompt } from '../../store/types';
+import { create } from '../../store/actions/promptActions';
 
 const mapStateToProps = (state: IRootState) => {
     if (!state.auth.authenticatedUser)
-        throw 'Authenticated user must not be null at this point.';
+        throw new Error('Authenticated user must not be null at this point.');
     return {
         authenticatedUser: state.auth.authenticatedUser,
         promptErrorState: state.prompt.promptErrorState,
@@ -15,7 +14,7 @@ const mapStateToProps = (state: IRootState) => {
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
-        create: (user: IAuthenticatedUser, newPrompt: INewPrompt) => dispatch(create(user, newPrompt)),
+        create: (user: IAuthenticatedUser, newPrompt: IPrompt) => dispatch(create(user, newPrompt)),
     };
 };
 
@@ -44,10 +43,14 @@ class NewPromptCard extends Component<Props> {
 
     handleSubmit = (e: MouseEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const timestamp = Date.now();
         if (this.state.body.length && this.state.title.length) {
             this.props.create(this.props.authenticatedUser, {
                 ...this.state,
                 authorId: this.props.authenticatedUser.authorId,
+                createdDate: new Date(timestamp),
+                modifiedDate: new Date(timestamp),
+                promptId: -timestamp,
             });
         }
     }
