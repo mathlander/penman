@@ -5,6 +5,7 @@ import { IRootState, IAuthenticatedUser, INewPrompt, IPrompt } from '../../store
 import { isAuthTokenExpired } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
+import NewPromptCard from './NewPromptCard';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -36,8 +37,9 @@ class PromptsPage extends Component<Props> {
             push('/signin');
         }
         return (
-            <div className="dashboard container">
-                <div className="dashboard-work-area stories container grey-text text-darken-1 col s12 m6">
+            <div className="prompts container">
+                <div className="prompts-work-area stories container grey-text text-darken-1 col s12 m6">
+                    <NewPromptCard />
                     {/** Extract cards to component */}
                     <div className="card-panel story white row">
                         <img src={bookImg} alt="A book" />
@@ -49,9 +51,6 @@ class PromptsPage extends Component<Props> {
                             <i className="material-icons">delete_outline</i>
                         </div>
                     </div>
-                </div>
-                <div className="dashboard-notifications-area col s12 m5 offset-m1">
-                    <span>Example notification</span>
                 </div>
             </div>
         );
