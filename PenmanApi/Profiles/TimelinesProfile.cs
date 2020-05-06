@@ -11,7 +11,7 @@ namespace PenmanApi.Profiles
             CreateMap<CreateTimelineDto, Timeline>();
             CreateMap<Timeline, CreateTimelineResponseDto>();
             CreateMap<Timeline, UpdateTimelineResponseDto>();
-            CreateMap<Timeline, ReadTimelineDto>();
+            CreateMap<Timeline, ReadTimelineResponseDto>();
         }
     }
 }

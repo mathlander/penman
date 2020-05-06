@@ -39,10 +39,10 @@ namespace PenmanApi.Services
             return shortEntity;
         }
 
-        public IEnumerable<Short> ReadAll(long authorId)
+        public IEnumerable<Short> ReadAll(long authorId, DateTime lastReadAll)
         {
             return _dbContext.Short
-                .Where(s => s.AuthorId == authorId)
+                .Where(s => s.AuthorId == authorId && s.ModifiedDate >= lastReadAll)
                 .ToArray();
         }
 

@@ -11,7 +11,7 @@ namespace PenmanApi.Profiles
             CreateMap<CreatePersonificationDto, Personification>();
             CreateMap<Personification, CreatePersonificationResponseDto>();
             CreateMap<Personification, UpdatePersonificationResponseDto>();
-            CreateMap<Personification, ReadPersonificationDto>();
+            CreateMap<Personification, ReadPersonificationResponseDto>();
         }
     }
 }

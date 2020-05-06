@@ -39,10 +39,10 @@ namespace PenmanApi.Services
             return personification;
         }
 
-        public IEnumerable<Personification> ReadAll(long authorId)
+        public IEnumerable<Personification> ReadAll(long authorId, DateTime lastReadAll)
         {
             return _dbContext.Personification
-                .Where(p => p.AuthorId == authorId)
+                .Where(p => p.AuthorId == authorId && p.ModifiedDate >= lastReadAll)
                 .ToArray();
         }
 

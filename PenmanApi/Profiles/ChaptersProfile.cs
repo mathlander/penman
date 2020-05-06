@@ -11,7 +11,7 @@ namespace PenmanApi.Chapters
             CreateMap<CreateChapterDto, Chapter>();
             CreateMap<Chapter, CreateChapterResponseDto>();
             CreateMap<Chapter, UpdateChapterResponseDto>();
-            CreateMap<Chapter, ReadChapterDto>();
+            CreateMap<Chapter, ReadChapterResponseDto>();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace PenmanApi.Services
     {
         Timeline Create(Timeline timeline);
         Timeline Read(long timelineId, long authorId);
-        IEnumerable<Timeline> ReadAll(long authorId);
+        IEnumerable<Timeline> ReadAll(long authorId, DateTime lastReadAll);
         Timeline UpdateTimeline(long timelineId, long authorId, string title, DateTime eventStart, DateTime eventEnd);
         bool Delete(long timelineId, long authorId);
     }

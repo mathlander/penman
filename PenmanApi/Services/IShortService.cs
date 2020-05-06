@@ -8,7 +8,7 @@ namespace PenmanApi.Services
     {
         Short Create(Short shortEntity);
         Short Read(long shortId, long authorId);
-        IEnumerable<Short> ReadAll(long authorId);
+        IEnumerable<Short> ReadAll(long authorId, DateTime lastReadAll);
         Short UpdateShort(long shortId, long authorId, string title, string body, DateTime eventStart, DateTime eventEnd);
         bool Delete(long shortId, long authorId);
     }

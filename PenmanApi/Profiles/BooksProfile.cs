@@ -11,7 +11,7 @@ namespace PenmanApi.Books
             CreateMap<CreateBookDto, Book>();
             CreateMap<Book, CreateBookResponseDto>();
             CreateMap<Book, UpdateBookResponseDto>();
-            CreateMap<Book, ReadBookDto>();
+            CreateMap<Book, ReadBookResponseDto>();
         }
     }
 }

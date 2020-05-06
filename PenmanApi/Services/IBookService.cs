@@ -8,7 +8,7 @@ namespace PenmanApi.Services
     {
         Book Create(Book book);
         Book Read(long bookId, long authorId);
-        IEnumerable<Book> ReadAll(long authorId);
+        IEnumerable<Book> ReadAll(long authorId, DateTime lastReadAll);
         Book UpdateBook(long bookId, long authorId, long? timelineId, string title);
         bool Delete(long bookId, long authorId);
     }

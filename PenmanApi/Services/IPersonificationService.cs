@@ -8,7 +8,7 @@ namespace PenmanApi.Services
     {
         Personification Create(Personification personification);
         Personification Read(long personificationId, long authorId);
-        IEnumerable<Personification> ReadAll(long authorId);
+        IEnumerable<Personification> ReadAll(long authorId, DateTime lastReadAll);
         Personification UpdatePersonification(long personificationId, long authorId, string firstName, string middleName, string lastName, DateTime birthday);
         bool Delete(long personificationId, long authorId);
     }

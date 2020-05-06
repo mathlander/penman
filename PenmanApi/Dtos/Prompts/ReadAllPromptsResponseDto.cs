@@ -7,10 +7,11 @@ namespace PenmanApi.Dtos.Prompts
     public class ReadAllPromptsResponseDto
     {
         public ReadPromptResponseDto[] Prompts { get; set; }
+        public DateTime LastReadAll { get; set; }
 
         public override string ToString()
         {
-            return $"Prompts: [{String.Join("\r\n\r\n/***/\r\n\r\n", Prompts.AsEnumerable())}]";
+            return $"LastReadAll: {LastReadAll}, Prompts: [{String.Join("\r\n\r\n/***/\r\n\r\n", Prompts.AsEnumerable())}]";
         }
     }
 }

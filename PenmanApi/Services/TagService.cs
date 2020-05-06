@@ -39,10 +39,10 @@ namespace PenmanApi.Services
             return tag;
         }
 
-        public IEnumerable<Tag> ReadAll(long authorId)
+        public IEnumerable<Tag> ReadAll(long authorId, DateTime lastReadAll)
         {
             return _dbContext.Tag
-                .Where(t => t.AuthorId == authorId)
+                .Where(t => t.AuthorId == authorId && t.ModifiedDate >= lastReadAll)
                 .ToArray();
         }
 

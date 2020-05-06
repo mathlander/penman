@@ -7,10 +7,11 @@ namespace PenmanApi.Dtos.Chapters
     public class ReadAllChaptersResponseDto
     {
         public ReadChapterResponseDto[] Chapters { get; set; }
+        public DateTime LastReadAll { get; set; }
 
         public override string ToString()
         {
-            return $"Chapters: [{String.Join("\r\n\r\n/***/\r\n\r\n", Chapters.AsEnumerable())}]";
+            return $"LastReadAll: {LastReadAll}, Chapters: [{String.Join("\r\n\r\n/***/\r\n\r\n", Chapters.AsEnumerable())}]";
         }
     }
 }

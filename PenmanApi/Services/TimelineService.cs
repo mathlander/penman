@@ -39,10 +39,10 @@ namespace PenmanApi.Services
             return timeline;
         }
 
-        public IEnumerable<Timeline> ReadAll(long authorId)
+        public IEnumerable<Timeline> ReadAll(long authorId, DateTime lastReadAll)
         {
             return _dbContext.Timeline
-                .Where(t => t.AuthorId == authorId)
+                .Where(t => t.AuthorId == authorId && t.ModifiedDate >= lastReadAll)
                 .ToArray();
         }
 

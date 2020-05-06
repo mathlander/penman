@@ -7,10 +7,11 @@ namespace PenmanApi.Dtos.Timelines
     public class ReadAllTimelinesResponseDto
     {
         public ReadTimelineResponseDto[] Timelines { get; set; }
+        public DateTime LastReadAll { get; set; }
 
         public override string ToString()
         {
-            return $"Timelines: [{String.Join("\r\n\r\n/***/\r\n\r\n", Timelines.AsEnumerable())}]";
+            return $"LastReadAll: {LastReadAll}, Timelines: [{String.Join("\r\n\r\n/***/\r\n\r\n", Timelines.AsEnumerable())}]";
         }
     }
 }

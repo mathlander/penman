@@ -11,7 +11,7 @@ namespace PenmanApi.Profiles
             CreateMap<CreateShortDto, Short>();
             CreateMap<Short, CreateShortResponseDto>();
             CreateMap<Short, UpdateShortResponseDto>();
-            CreateMap<Short, ReadShortDto>();
+            CreateMap<Short, ReadShortResponseDto>();
         }
     }
 }

@@ -7,10 +7,11 @@ namespace PenmanApi.Dtos.Personifications
     public class ReadAllPersonificationsResponseDto
     {
         public ReadPersonificationResponseDto[] Personifications { get; set; }
+        public DateTime LastReadAll { get; set; }
 
         public override string ToString()
         {
-            return $"Personifications: [{String.Join("\r\n\r\n/***/\r\n\r\n", Personifications.AsEnumerable())}]";
+            return $"LastReadAll: {LastReadAll}, Personifications: [{String.Join("\r\n\r\n/***/\r\n\r\n", Personifications.AsEnumerable())}]";
         }
     }
 }

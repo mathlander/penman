@@ -45,10 +45,10 @@ namespace PenmanApi.Services
             return prompt;
         }
 
-        public IEnumerable<Prompt> ReadAll(long authorId)
+        public IEnumerable<Prompt> ReadAll(long authorId, DateTime lastReadAll)
         {
             return _dbContext.Prompt
-                .Where(p => p.AuthorId == authorId)
+                .Where(p => p.AuthorId == authorId && p.ModifiedDate >= lastReadAll)
                 .ToArray();
         }
 

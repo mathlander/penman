@@ -8,7 +8,7 @@ namespace PenmanApi.Services
     {
         Tag Create(Tag tag);
         Tag Read(long tagId, long authorId);
-        IEnumerable<Tag> ReadAll(long authorId);
+        IEnumerable<Tag> ReadAll(long authorId, DateTime lastReadAll);
         Tag UpdateTag(long tagId, long authorId, string tagName);
         bool Delete(long tagId, long authorId);
     }

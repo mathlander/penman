@@ -62,11 +62,14 @@ namespace PenmanApi.Controllers
                 if (_httpContextAccessor.GetCurrentUserId() != readAllTimelinesDto.AuthorId)
                     throw new UnauthorizedAccessException($"Requested authorId does not match authenticated authorId.");
 
-                var prompts = _timelineService.ReadAll(readAllTimelinesDto.AuthorId);
+                var lastReadAll = readAllTimelinesDto.LastReadAll.HasValue ? readAllTimelinesDto.LastReadAll.Value : new DateTime(1970, 1, 1);
+                var lastReadAllResponse = DateTime.Now;
+                var timelines = _timelineService.ReadAll(readAllTimelinesDto.AuthorId, lastReadAll);
 
                 responseDto = new ReadAllTimelinesResponseDto
                 {
-                    Timelines = prompts.Select(s => _mapper.Map<ReadTimelineResponseDto>(s)).ToArray()
+                    Timelines = timelines.Select(t => _mapper.Map<ReadTimelineResponseDto>(t)).ToArray(),
+                    LastReadAll = lastReadAllResponse,
                 };
             }
             catch (Exception ex)

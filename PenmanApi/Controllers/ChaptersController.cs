@@ -62,11 +62,14 @@ namespace PenmanApi.Controllers
                 if (_httpContextAccessor.GetCurrentUserId() != readAllChaptersDto.AuthorId)
                     throw new UnauthorizedAccessException($"Requested authorId does not match authenticated authorId.");
 
-                var prompts = _chapterService.ReadAll(readAllChaptersDto.AuthorId, readAllChaptersDto.BookId);
+                var lastReadAll = readAllChaptersDto.LastReadAll.HasValue ? readAllChaptersDto.LastReadAll.Value : new DateTime(1970, 1, 1);
+                var lastReadAllResponse = DateTime.Now;
+                var chapters = _chapterService.ReadAll(readAllChaptersDto.AuthorId, readAllChaptersDto.BookId, lastReadAll);
 
                 responseDto = new ReadAllChaptersResponseDto
                 {
-                    Chapters = prompts.Select(s => _mapper.Map<ReadChapterResponseDto>(s)).ToArray()
+                    Chapters = chapters.Select(c => _mapper.Map<ReadChapterResponseDto>(c)).ToArray(),
+                    LastReadAll = lastReadAllResponse,
                 };
             }
             catch (Exception ex)

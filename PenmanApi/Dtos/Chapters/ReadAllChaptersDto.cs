@@ -12,9 +12,14 @@ namespace PenmanApi.Dtos.Chapters
         [Required]
         public long BookId { get; set; }
 
+        public DateTime? LastReadAll { get; set; }
+
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, BookId: {BookId}";
+            var readAll = LastReadAll.HasValue
+                ? LastReadAll.Value.ToString()
+                : "never";
+            return $"AuthorId: {AuthorId}, BookId: {BookId}, LastReadAll: {readAll}";
         }
     }
 }

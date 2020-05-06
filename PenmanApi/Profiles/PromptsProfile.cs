@@ -11,7 +11,7 @@ namespace PenmanApi.Profiles
             CreateMap<CreatePromptDto, Prompt>();
             CreateMap<Prompt, CreatePromptResponseDto>();
             CreateMap<Prompt, UpdatePromptResponseDto>();
-            CreateMap<Prompt, ReadPromptDto>();
+            CreateMap<Prompt, ReadPromptResponseDto>();
         }
     }
 }
