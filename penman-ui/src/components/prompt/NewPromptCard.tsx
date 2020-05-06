@@ -30,7 +30,13 @@ class NewPromptCard extends Component<Props> {
         body: '',
     }
 
-    handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            [e.target.id]: e.target.value
+        });
+    }
+
+    handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
             [e.target.id]: e.target.value
         });
@@ -54,11 +60,11 @@ class NewPromptCard extends Component<Props> {
                     <h6>New Prompt</h6>
                     <div className="divider"></div>
                     <div className="input-field">
-                        <input id="title" type="text" className="validate" onChange={this.handleChange} required autoFocus />
+                        <input id="title" type="text" className="validate" onChange={this.handleInputChange} required autoFocus />
                         <label htmlFor="title">Title</label>
                     </div>
                     <div className="input-field">
-                        <input id="body" type="email" className="validate" onChange={this.handleChange} required />
+                        <textarea id="body" className="validate materialize-textarea" data-length="100000000" onChange={this.handleTextAreaChange} required />
                         <label htmlFor="body">Prompt</label>
                     </div>
                     <div className="input-field center">

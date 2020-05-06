@@ -6,10 +6,26 @@ import { isAuthTokenExpired } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
 import NewPromptCard from './NewPromptCard';
+import PromptCard from './PromptCard';
+
+const expiredUser: IAuthenticatedUser = {
+    token: '',
+    refreshToken: '',
+    tokenExpirationDate: new Date(),
+    refreshTokenExpirationDate: new Date(),
+    authorId: 0,
+    username: '',
+    email: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    createdDate: new Date(),
+    modifiedDate: new Date(),
+};
 
 const mapStateToProps = (state: IRootState) => {
     return {
-        authenticatedUser: state.auth.authenticatedUser,
+        authenticatedUser: state.auth.authenticatedUser || expiredUser,
         prompts: state.prompt.prompts,
     };
 };
@@ -40,17 +56,18 @@ class PromptsPage extends Component<Props> {
             <div className="prompts container">
                 <div className="prompts-work-area stories container grey-text text-darken-1 col s12 m6">
                     <NewPromptCard />
-                    {/** Extract cards to component */}
-                    <div className="card-panel story white row">
-                        <img src={bookImg} alt="A book" />
-                        <div className="story-details">
-                            <div className="story-title">Some Title</div>
-                            <div className="story-contents">The makings of a story.</div>
-                        </div>
-                        <div className="story-delete secondary-content">
-                            <i className="material-icons">delete_outline</i>
-                        </div>
+                    <div className="prompts">
+                        {Object.values(this.props.prompts).map(prompt =>
+                            <PromptCard
+                                key={`promptId:${prompt.promptId}`}
+                                prompt={prompt}
+                                user={authenticatedUser}
+                                update={this.props.update}
+                                deleteEntity={this.props.deleteEntity}
+                            />
+                        )}
                     </div>
+                    {/** Extract cards to component */}
                 </div>
             </div>
         );
