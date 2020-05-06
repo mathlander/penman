@@ -3,7 +3,7 @@ import { apiConstants, authConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthCredentials, INewUser } from '../types';
 
 export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser): boolean => {
-    if (!authenticatedUser || !authenticatedUser.tokenExpirationDate) return true;
+    if (!authenticatedUser.tokenExpirationDate) return true;
     return authenticatedUser.tokenExpirationDate.getTime() < Date.now();
 };
 

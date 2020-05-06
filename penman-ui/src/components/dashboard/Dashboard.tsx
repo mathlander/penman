@@ -25,7 +25,7 @@ type Props = PropsFromRedux;
 class Dashboard extends Component<Props> {
     render() {
         const { authenticatedUser } = this.props;
-        if (!authenticatedUser || this.props.isTokenExpired(authenticatedUser)) {
+        if (this.props.isTokenExpired(authenticatedUser)) {
             push('/signin');
         }
         return (

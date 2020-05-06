@@ -32,7 +32,7 @@ type Props = PropsFromRedux;
 class TimelinesPage extends Component<Props> {
     render() {
         const { authenticatedUser } = this.props;
-        if (!authenticatedUser || this.props.isTokenExpired(authenticatedUser)) {
+        if (this.props.isTokenExpired(authenticatedUser)) {
             push('/signin');
         }
         return (

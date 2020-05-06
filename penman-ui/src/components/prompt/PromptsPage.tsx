@@ -7,24 +7,9 @@ import { create, read, readAll, update, deleteEntity } from '../../store/actions
 import NewPromptCard from './NewPromptCard';
 import PromptCard from './PromptCard';
 
-const expiredUser: IAuthenticatedUser = {
-    token: '',
-    refreshToken: '',
-    tokenExpirationDate: new Date(),
-    refreshTokenExpirationDate: new Date(),
-    authorId: 0,
-    username: '',
-    email: '',
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    createdDate: new Date(),
-    modifiedDate: new Date(),
-};
-
 const mapStateToProps = (state: IRootState) => {
     return {
-        authenticatedUser: state.auth.authenticatedUser || expiredUser,
+        authenticatedUser: state.auth.authenticatedUser,
         prompts: state.prompt.prompts,
     };
 };
@@ -48,7 +33,7 @@ type Props = PropsFromRedux;
 class PromptsPage extends Component<Props> {
     render() {
         const { authenticatedUser } = this.props;
-        if (!authenticatedUser || this.props.isTokenExpired(authenticatedUser)) {
+        if (this.props.isTokenExpired(authenticatedUser)) {
             push('/signin');
         }
         return (

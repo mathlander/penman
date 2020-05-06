@@ -44,7 +44,7 @@ export interface IAuthenticationErrorState {
 };
 
 export interface IAuthenticationState {
-    authenticatedUser: IAuthenticatedUser | null;
+    authenticatedUser: IAuthenticatedUser;
     authErrorState: IAuthenticationErrorState;
     pendingActions: IAuthReducerAction[];
 };

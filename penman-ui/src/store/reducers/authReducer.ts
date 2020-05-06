@@ -1,14 +1,29 @@
 import { authConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthenticationState, IAuthReducerAction } from '../types';
 
-const nullErrorState: IAuthenticationErrorState = {
+export const expiredUser: IAuthenticatedUser = {
+    token: '',
+    refreshToken: '',
+    tokenExpirationDate: new Date(1970),
+    refreshTokenExpirationDate: new Date(1970),
+    authorId: 0,
+    username: '',
+    email: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    createdDate: new Date(),
+    modifiedDate: new Date(),
+};
+
+export const nullErrorState: IAuthenticationErrorState = {
     internalErrorMessage: null,
     displayErrorMessage: null,
 };
 
 const readLocalStorage = () : IAuthenticationState => {
     let localStorageState = JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null') || {
-        authenticatedUser: null,
+        authenticatedUser: expiredUser,
         authErrorState: nullErrorState,
         pendingActions: [],
     };
@@ -63,7 +78,7 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
             localStorage.clear();
             nextState = {
                 ...state,
-                authenticatedUser: null,
+                authenticatedUser: expiredUser,
                 authErrorState: nullErrorState,
                 pendingActions: [],
             };
@@ -89,7 +104,7 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
             localStorage.clear();
             return {
                 ...state,
-                authenticatedUser: null,
+                authenticatedUser: expiredUser,
                 authErrorState: action.error || {
                     internalErrorMessage: 'An unidentified error occurred while attempting to authenticate the user with the cached refresh token.',
                     displayErrorMessage: 'An error occurred while attempting to authenticate the user.',
