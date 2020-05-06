@@ -5,11 +5,13 @@ import { IRootState, IAuthenticatedUser, INewShort, IShort } from '../../store/t
 import { isAuthTokenExpired } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/shortActions';
+import { defaultDate } from '../../config/constants';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         shorts: state.short.shorts,
+        lastReadAll: state.short.lastReadAll || defaultDate,
     };
 };
 
@@ -18,7 +20,7 @@ const mapDispatchToProps = (dispatch: any) => {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
         create: (user: IAuthenticatedUser, newShort: INewShort) => dispatch(create(user, newShort)),
         read: (user: IAuthenticatedUser, shortId: number) => dispatch(read(user, shortId)),
-        readAll: (user: IAuthenticatedUser) => dispatch(readAll(user)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
         update: (user: IAuthenticatedUser, short: IShort) => dispatch(update(user, short)),
         deleteEntity: (user: IAuthenticatedUser, short: IShort) => dispatch(deleteEntity(user, short)),
     };
@@ -30,6 +32,10 @@ type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
 class ShortsPage extends Component<Props> {
+    componentDidMount() {
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+    }
+
     render() {
         const { authenticatedUser } = this.props;
         if (this.props.isTokenExpired(authenticatedUser)) {

@@ -5,7 +5,11 @@ import { IAuthenticatedUser, IShort, IShortCollection, IShortErrorState, INewSho
 export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/create`;
-        const data = newShort;
+        const data = {
+            ...newShort,
+            eventStart: newShort.eventStart.toISOString(),
+            eventEnd: newShort.eventEnd.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -38,9 +42,9 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/readall?authorId=${authUser.authorId}`;
+        const url = `${apiConstants.shortsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -111,7 +115,11 @@ export const read = (authUser: IAuthenticatedUser, shortId: number) => {
 export const update = (authUser: IAuthenticatedUser, short: IShort) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/update`;
-        const data = short;
+        const data = {
+            ...short,
+            eventStart: short.eventStart.toISOString(),
+            eventEnd: short.eventEnd.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',

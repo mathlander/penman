@@ -130,6 +130,7 @@ export interface IBookState {
     books: Record<number, IBook>;
     bookErrorState: IBookErrorState;
     pendingActions: IBookReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface IBookReducerAction {
@@ -178,6 +179,7 @@ export interface IChapterState {
     chapters: Record<number, IChapter>;
     chapterErrorState: IChapterErrorState;
     pendingActions: IChapterReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface IChapterReducerAction {
@@ -226,6 +228,7 @@ export interface IPersonificationState {
     personifications: Record<number, IPersonification>;
     personificationErrorState: IPersonificationErrorState;
     pendingActions: IPersonificationReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface IPersonificationReducerAction {
@@ -272,6 +275,7 @@ export interface IPromptState {
     prompts: Record<number, IPrompt>;
     promptErrorState: IPromptErrorState;
     pendingActions: IPromptReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface IPromptReducerAction {
@@ -320,6 +324,7 @@ export interface IShortState {
     shorts: Record<number, IShort>;
     shortErrorState: IShortErrorState;
     pendingActions: IShortReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface IShortReducerAction {
@@ -367,6 +372,7 @@ export interface ITimelineState {
     timelines: Record<number, ITimeline>;
     timelineErrorState: ITimelineErrorState;
     pendingActions: ITimelineReducerAction[];
+    lastReadAll: Date;
 };
 
 export interface ITimelineReducerAction {

@@ -6,11 +6,13 @@ import { isAuthTokenExpired } from '../../store/actions/authActions';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
 import NewPromptCard from './NewPromptCard';
 import PromptCard from './PromptCard';
+import { defaultDate } from '../../config/constants';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         prompts: state.prompt.prompts,
+        lastReadAll: state.prompt.lastReadAll || defaultDate,
     };
 };
 
@@ -19,7 +21,7 @@ const mapDispatchToProps = (dispatch: any) => {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
         create: (user: IAuthenticatedUser, newPrompt: INewPrompt) => dispatch(create(user, newPrompt)),
         read: (user: IAuthenticatedUser, promptId: number) => dispatch(read(user, promptId)),
-        readAll: (user: IAuthenticatedUser) => dispatch(readAll(user)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
         update: (user: IAuthenticatedUser, prompt: IPrompt) => dispatch(update(user, prompt)),
         deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt) => dispatch(deleteEntity(user, prompt)),
     };
@@ -31,6 +33,10 @@ type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
 class PromptsPage extends Component<Props> {
+    componentDidMount() {
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+    }
+
     render() {
         const { authenticatedUser } = this.props;
         if (this.props.isTokenExpired(authenticatedUser)) {
@@ -51,7 +57,6 @@ class PromptsPage extends Component<Props> {
                             />
                         )}
                     </div>
-                    {/** Extract cards to component */}
                 </div>
             </div>
         );

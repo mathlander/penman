@@ -1,5 +1,6 @@
 import { timelineConstants } from '../../config/constants';
 import { ITimeline, ITimelineCollection, ITimelineState, ITimelineErrorState, ITimelineReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: ITimelineErrorState = {
     internalErrorMessage: null,
@@ -11,6 +12,7 @@ const readLocalStorage = () : ITimelineState => {
         timelines: {},
         timelineErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.timelines).forEach((timeline) => {
         timeline.eventStart = new Date(timeline.eventStart);
@@ -18,6 +20,7 @@ const readLocalStorage = () : ITimelineState => {
         timeline.createdDate = new Date(timeline.createdDate);
         timeline.modifiedDate = new Date(timeline.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -26,6 +29,7 @@ const updateLocalStorage = (state: ITimelineState) : void => {
         timelines: state.timelines,
         timelineErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -132,6 +136,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 },
                 timelineErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             timelineCollection.timelines.forEach(timeline => {
                 nextState.timelines[timeline.timelineId] = timeline;

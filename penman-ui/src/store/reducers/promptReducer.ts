@@ -1,5 +1,6 @@
 import { promptConstants } from '../../config/constants';
 import { IPrompt, IPromptCollection, IPromptState, IPromptErrorState, IPromptReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IPromptErrorState = {
     internalErrorMessage: null,
@@ -11,11 +12,13 @@ const readLocalStorage = () : IPromptState => {
         prompts: {},
         promptErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.prompts).forEach((prompt) => {
         prompt.createdDate = new Date(prompt.createdDate);
         prompt.modifiedDate = new Date(prompt.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -24,6 +27,7 @@ const updateLocalStorage = (state: IPromptState) : void => {
         prompts: state.prompts,
         promptErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -130,6 +134,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 },
                 promptErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             promptCollection.prompts.forEach(prompt => {
                 nextState.prompts[prompt.promptId] = prompt;

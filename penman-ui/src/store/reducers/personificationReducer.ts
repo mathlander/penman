@@ -1,5 +1,6 @@
 import { personificationConstants } from '../../config/constants';
 import { IPersonification, IPersonificationCollection, IPersonificationState, IPersonificationErrorState, IPersonificationReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IPersonificationErrorState = {
     internalErrorMessage: null,
@@ -11,12 +12,14 @@ const readLocalStorage = () : IPersonificationState => {
         personifications: {},
         personificationErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.personifications).forEach((personification) => {
         personification.birthday = new Date(personification.birthday);
         personification.createdDate = new Date(personification.createdDate);
         personification.modifiedDate = new Date(personification.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -25,6 +28,7 @@ const updateLocalStorage = (state: IPersonificationState) : void => {
         personifications: state.personifications,
         personificationErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -131,6 +135,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 },
                 personificationErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             personificationCollection.personifications.forEach(personification => {
                 nextState.personifications[personification.personificationId] = personification;

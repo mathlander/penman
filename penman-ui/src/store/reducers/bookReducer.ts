@@ -1,5 +1,6 @@
 import { bookConstants } from '../../config/constants';
 import { IBook, IBookCollection, IBookState, IBookErrorState, IBookReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IBookErrorState = {
     internalErrorMessage: null,
@@ -11,11 +12,13 @@ const readLocalStorage = () : IBookState => {
         books: {},
         bookErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.books).forEach((book) => {
         book.createdDate = new Date(book.createdDate);
         book.modifiedDate = new Date(book.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -24,6 +27,7 @@ const updateLocalStorage = (state: IBookState) : void => {
         books: state.books,
         bookErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -130,6 +134,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                 },
                 bookErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             bookCollection.books.forEach(book => {
                 nextState.books[book.bookId] = book;

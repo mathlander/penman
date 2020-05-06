@@ -5,7 +5,10 @@ import { IAuthenticatedUser, IPersonification, IPersonificationCollection, IPers
 export const create = (authUser: IAuthenticatedUser, newPersonification: INewPersonification) => {
     return (dispatch: any) => {
         const url = `${apiConstants.personificationsController}/create`;
-        const data = newPersonification;
+        const data = {
+            ...newPersonification,
+            birthday: newPersonification.birthday.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -37,9 +40,9 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/readall?authorId=${authUser.authorId}`;
+        const url = `${apiConstants.personificationsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -108,7 +111,10 @@ export const read = (authUser: IAuthenticatedUser, personificationId: number) =>
 export const update = (authUser: IAuthenticatedUser, personification: IPersonification) => {
     return (dispatch: any) => {
         const url = `${apiConstants.personificationsController}/update`;
-        const data = personification;
+        const data = {
+            ...personification,
+            birthday: personification.birthday.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',

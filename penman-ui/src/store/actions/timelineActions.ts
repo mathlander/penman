@@ -5,7 +5,11 @@ import { IAuthenticatedUser, ITimeline, ITimelineCollection, ITimelineErrorState
 export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/create`;
-        const data = newTimeline;
+        const data = {
+            ...newTimeline,
+            eventStart: newTimeline.eventStart.toISOString(),
+            eventEnd: newTimeline.eventEnd.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -38,9 +42,9 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline) 
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/readall?authorId=${authUser.authorId}`;
+        const url = `${apiConstants.timelinesController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
         const config = {
             headers: {
                 'Content-Type': 'application/json',
@@ -111,7 +115,11 @@ export const read = (authUser: IAuthenticatedUser, timelineId: number) => {
 export const update = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/update`;
-        const data = timeline;
+        const data = {
+            ...timeline,
+            eventStart: timeline.eventStart.toISOString(),
+            eventEnd: timeline.eventEnd.toISOString(),
+        };
         const config = {
             headers: {
                 'Content-Type': 'application/json',

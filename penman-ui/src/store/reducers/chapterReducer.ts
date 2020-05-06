@@ -1,5 +1,6 @@
 import { chapterConstants } from '../../config/constants';
 import { IChapter, IChapterCollection, IChapterState, IChapterErrorState, IChapterReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IChapterErrorState = {
     internalErrorMessage: null,
@@ -11,11 +12,13 @@ const readLocalStorage = () : IChapterState => {
         chapters: {},
         chapterErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.chapters).forEach((chapter) => {
         chapter.createdDate = new Date(chapter.createdDate);
         chapter.modifiedDate = new Date(chapter.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -24,6 +27,7 @@ const updateLocalStorage = (state: IChapterState) : void => {
         chapters: state.chapters,
         chapterErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -130,6 +134,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 },
                 chapterErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             chapterCollection.chapters.forEach(chapter => {
                 nextState.chapters[chapter.chapterId] = chapter;

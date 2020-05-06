@@ -5,11 +5,13 @@ import { IRootState, IAuthenticatedUser, INewBook, IBook } from '../../store/typ
 import { isAuthTokenExpired } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/bookActions';
+import { defaultDate } from '../../config/constants';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         books: state.book.books,
+        lastReadAll: state.book.lastReadAll || defaultDate,
     };
 };
 
@@ -18,7 +20,7 @@ const mapDispatchToProps = (dispatch: any) => {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
         create: (user: IAuthenticatedUser, newBook: INewBook) => dispatch(create(user, newBook)),
         read: (user: IAuthenticatedUser, bookId: number) => dispatch(read(user, bookId)),
-        readAll: (user: IAuthenticatedUser) => dispatch(readAll(user)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
         update: (user: IAuthenticatedUser, book: IBook) => dispatch(update(user, book)),
         deleteEntity: (user: IAuthenticatedUser, book: IBook) => dispatch(deleteEntity(user, book)),
     };
@@ -30,6 +32,10 @@ type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
 class BooksPage extends Component<Props> {
+    componentDidMount() {
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+    }
+
     render() {
         const { authenticatedUser } = this.props;
         if (this.props.isTokenExpired(authenticatedUser)) {

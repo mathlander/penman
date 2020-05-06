@@ -36,9 +36,9 @@ export const create = (authUser: IAuthenticatedUser, newBook: INewBook) => {
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/readall?authorId=${authUser.authorId}`;
+        const url = `${apiConstants.booksController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
         const config = {
             headers: {
                 'Content-Type': 'application/json',

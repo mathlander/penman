@@ -1,5 +1,6 @@
 import { shortConstants } from '../../config/constants';
 import { IShort, IShortCollection, IShortState, IShortErrorState, IShortReducerAction } from '../types';
+import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IShortErrorState = {
     internalErrorMessage: null,
@@ -11,6 +12,7 @@ const readLocalStorage = () : IShortState => {
         shorts: {},
         shortErrorState: nullErrorState,
         pendingActions: [],
+        lastReadAll: defaultDate,
     };
     Object.values(localStorageState.shorts).forEach((short) => {
         short.eventStart = new Date(short.eventStart);
@@ -18,6 +20,7 @@ const readLocalStorage = () : IShortState => {
         short.createdDate = new Date(short.createdDate);
         short.modifiedDate = new Date(short.modifiedDate);
     });
+    localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
@@ -26,6 +29,7 @@ const updateLocalStorage = (state: IShortState) : void => {
         shorts: state.shorts,
         shortErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
 
@@ -132,6 +136,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 },
                 shortErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                lastReadAll: new Date(action.timestamp),
             };
             shortCollection.shorts.forEach(short => {
                 nextState.shorts[short.shortId] = short;

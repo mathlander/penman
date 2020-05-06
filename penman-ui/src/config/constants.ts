@@ -10,6 +10,8 @@ if (baseUrl.startsWith('https://localhost')) {
     });
 }
 
+export const defaultDate = new Date(1970, 0, 0);
+
 export const apiConstants = {
     baseUrl: baseUrl,
     usersController: `${baseUrl}/users`,
