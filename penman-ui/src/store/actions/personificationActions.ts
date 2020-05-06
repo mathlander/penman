@@ -9,7 +9,7 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -43,7 +43,7 @@ export const readAll = (authUser: IAuthenticatedUser) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -78,7 +78,7 @@ export const read = (authUser: IAuthenticatedUser, personificationId: number) =>
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -112,7 +112,7 @@ export const update = (authUser: IAuthenticatedUser, personification: IPersonifi
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -146,7 +146,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPer
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();

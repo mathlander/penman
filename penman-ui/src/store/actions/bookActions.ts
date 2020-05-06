@@ -9,7 +9,7 @@ export const create = (authUser: IAuthenticatedUser, newBook: INewBook) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -42,7 +42,7 @@ export const readAll = (authUser: IAuthenticatedUser) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -76,7 +76,7 @@ export const read = (authUser: IAuthenticatedUser, bookId: number) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -109,7 +109,7 @@ export const update = (authUser: IAuthenticatedUser, book: IBook) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -142,7 +142,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, book: IBook) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();

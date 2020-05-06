@@ -9,7 +9,7 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -44,7 +44,7 @@ export const readAll = (authUser: IAuthenticatedUser) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -80,7 +80,7 @@ export const read = (authUser: IAuthenticatedUser, shortId: number) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -115,7 +115,7 @@ export const update = (authUser: IAuthenticatedUser, short: IShort) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
@@ -150,7 +150,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort) => {
         const config = {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorize': `Bearer ${authUser.token}`,
+                'Authorization': `Bearer ${authUser.token}`,
             }
         };
         const timestamp = Date.now();
