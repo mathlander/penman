@@ -113,7 +113,7 @@ class PromptCard extends Component<IPromptCardProps> {
                                         <label htmlFor={`prompt-form-title-${promptId}`}>Title</label>
                                     </div>
                                     <div className="input-field">
-                                        <textarea id={`prompt-form-body-${promptId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required />
+                                        <textarea id={`prompt-form-body-${promptId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required autoFocus />
                                         <label htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
                                     </div>
                                     <div className="input-field center">
@@ -125,7 +125,14 @@ class PromptCard extends Component<IPromptCardProps> {
                             : (
                                 <>
                                     <span className="card-title">{title}</span>
-                                    <p>{body}</p>
+                                    {
+                                        body.split(/\r?\n/)
+                                            .map(paragraphContent => {
+                                                return !paragraphContent
+                                                    ? (<br/>)
+                                                    : (<p>{paragraphContent}</p>);
+                                            })
+                                    }
                                 </>
                             )}
                     </div>
