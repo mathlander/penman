@@ -147,7 +147,7 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
                 dispatch({ type: timelineConstants.UPDATE_TIMELINE_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.UPDATE_TIMELINE, timestamp, memento });
+        dispatch({ type: timelineConstants.UPDATE_TIMELINE, payload: timeline, timestamp, memento });
         memento();
     };
 };
@@ -176,7 +176,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline) 
                 dispatch({ type: timelineConstants.DELETE_TIMELINE_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.DELETE_TIMELINE, timestamp, memento });
+        dispatch({ type: timelineConstants.DELETE_TIMELINE, payload: timeline, timestamp, memento });
         memento();
     };
 };

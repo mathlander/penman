@@ -121,7 +121,7 @@ form .input-field {
 
 /* Prompt styles */
 
-.prompt-card .inline-editable:hover {
+.inline-editable:hover {
   background: #e8f3ff;
 }
 

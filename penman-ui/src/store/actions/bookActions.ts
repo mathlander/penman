@@ -131,7 +131,7 @@ export const update = (authUser: IAuthenticatedUser, book: IBook) => {
                 dispatch({ type: bookConstants.UPDATE_BOOK_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: bookConstants.UPDATE_BOOK, timestamp, memento });
+        dispatch({ type: bookConstants.UPDATE_BOOK, payload: book, timestamp, memento });
         memento();
     };
 };
@@ -160,7 +160,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, book: IBook) => {
                 dispatch({ type: bookConstants.DELETE_BOOK_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: bookConstants.DELETE_BOOK, timestamp, memento });
+        dispatch({ type: bookConstants.DELETE_BOOK, payload: book, timestamp, memento });
         memento();
     };
 };

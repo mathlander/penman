@@ -141,7 +141,7 @@ export const update = (authUser: IAuthenticatedUser, personification: IPersonifi
                 dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION, timestamp, memento });
+        dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION, payload: personification, timestamp, memento });
         memento();
     };
 };
@@ -170,7 +170,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPer
                 dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: personificationConstants.DELETE_PERSONIFICATION, timestamp, memento });
+        dispatch({ type: personificationConstants.DELETE_PERSONIFICATION, payload: personification, timestamp, memento });
         memento();
     };
 };

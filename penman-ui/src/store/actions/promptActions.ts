@@ -131,7 +131,7 @@ export const update = (authUser: IAuthenticatedUser, prompt: IPrompt) => {
                 dispatch({ type: promptConstants.UPDATE_PROMPT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: promptConstants.UPDATE_PROMPT, timestamp, memento });
+        dispatch({ type: promptConstants.UPDATE_PROMPT, payload: prompt, timestamp, memento });
         memento();
     };
 };
@@ -160,7 +160,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, prompt: IPrompt) => {
                 dispatch({ type: promptConstants.DELETE_PROMPT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: promptConstants.DELETE_PROMPT, timestamp, memento });
+        dispatch({ type: promptConstants.DELETE_PROMPT, payload: prompt, timestamp, memento });
         memento();
     };
 };

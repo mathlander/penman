@@ -147,7 +147,7 @@ export const update = (authUser: IAuthenticatedUser, short: IShort) => {
                 dispatch({ type: shortConstants.UPDATE_SHORT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.UPDATE_SHORT, timestamp, memento });
+        dispatch({ type: shortConstants.UPDATE_SHORT, payload: short, timestamp, memento });
         memento();
     };
 };
@@ -176,7 +176,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort) => {
                 dispatch({ type: shortConstants.DELETE_SHORT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.DELETE_SHORT, timestamp, memento });
+        dispatch({ type: shortConstants.DELETE_SHORT, payload: short, timestamp, memento });
         memento();
     };
 };

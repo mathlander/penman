@@ -131,7 +131,7 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter) => {
                 dispatch({ type: chapterConstants.UPDATE_CHAPTER_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.UPDATE_CHAPTER, timestamp, memento });
+        dispatch({ type: chapterConstants.UPDATE_CHAPTER, payload: chapter, timestamp, memento });
         memento();
     };
 };
@@ -160,7 +160,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter) =>
                 dispatch({ type: chapterConstants.DELETE_CHAPTER_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.DELETE_CHAPTER, timestamp, memento });
+        dispatch({ type: chapterConstants.DELETE_CHAPTER, payload: chapter, timestamp, memento });
         memento();
     };
 };
