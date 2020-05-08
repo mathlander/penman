@@ -1,4 +1,4 @@
-import React, { Component, ChangeEvent, MouseEvent } from 'react';
+import React, { Component, ChangeEvent } from 'react';
 import M from 'materialize-css';
 import { IAuthenticatedUser, IPrompt } from '../../store/types';
 
@@ -46,11 +46,12 @@ class PromptCard extends Component<IPromptCardProps> {
         this.state.toolTipInstances.forEach((tooltip: M.Tooltip) => tooltip.destroy());
     }
 
-    handleDelete(e: MouseEvent<HTMLAnchorElement>) {
+    handleDelete = (e: any) => {
+        e.preventDefault();
         this.props.deleteEntity(this.props.user, this.props.prompt);
     }
 
-    handleCancel = (e: MouseEvent<HTMLButtonElement>) => {
+    handleCancel = () => {
         this.setState({
             isEditing: false,
             title: '',
@@ -58,14 +59,13 @@ class PromptCard extends Component<IPromptCardProps> {
         });
     }
 
-    handleUpdate = (e: MouseEvent<HTMLButtonElement>) => {
+    handleUpdate = () => {
         const modifiedPrompt: IPrompt = {
             ...this.props.prompt,
             title: this.state.title,
             body: this.state.body,
             modifiedDate: new Date(),
         };
-        console.log(`PromptCard.handleUpdate`, modifiedPrompt);
         this.props.update(this.props.user, modifiedPrompt);
         this.setState({
             isEditing: false,
@@ -95,8 +95,7 @@ class PromptCard extends Component<IPromptCardProps> {
     }
 
     render() {
-        const { prompt, user, deleteEntity } = this.props;
-        const { promptId, title, body, createdDate, modifiedDate } = prompt;
+        const { promptId, title, body, createdDate, modifiedDate } = this.props.prompt;
         const ccTooltip = `
             <p className="created-date">Created: ${createdDate && createdDate.toLocaleDateString()}</p>
             <p className="modified-date">Modified: ${modifiedDate && modifiedDate.toLocaleDateString()}</p>
@@ -117,8 +116,8 @@ class PromptCard extends Component<IPromptCardProps> {
                                         <label htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
                                     </div>
                                     <div className="input-field center">
-                                        <button className="btn-small" onClick={this.handleCancel}>Cancel</button>
-                                        <button className="btn-small" onClick={this.handleUpdate}>Update</button>
+                                        <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
+                                        <button className="btn-small" aria-label="Update" onClick={this.handleUpdate}>Update</button>
                                     </div>
                                 </form>
                             )
@@ -127,10 +126,10 @@ class PromptCard extends Component<IPromptCardProps> {
                                     <span className="card-title">{title}</span>
                                     {
                                         body.split(/\r?\n/)
-                                            .map(paragraphContent => {
+                                            .map((paragraphContent, idx) => {
                                                 return !paragraphContent
-                                                    ? (<br/>)
-                                                    : (<p>{paragraphContent}</p>);
+                                                    ? (<br key={`prompt-${promptId}-linebreak-${idx}`} />)
+                                                    : (<p key={`prompt-${promptId}-paragraph-${idx}`}>{paragraphContent}</p>);
                                             })
                                     }
                                 </>
@@ -138,7 +137,7 @@ class PromptCard extends Component<IPromptCardProps> {
                     </div>
                     <div className="card-action">
                         <div className="row">
-                            <a href="/dashboard" onClick={() => deleteEntity(user, prompt)}>
+                            <a href="/#" aria-label="Delete" onClick={this.handleDelete}>
                                 <i className={`material-icons small tooltip-prompt-cc-${promptId}`} data-tooltip="Delete">delete_outline</i>
                             </a>
                         </div>

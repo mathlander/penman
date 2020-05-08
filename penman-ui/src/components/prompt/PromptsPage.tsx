@@ -12,6 +12,7 @@ const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         prompts: state.prompt.prompts,
+        promptsCount: Object.values(state.prompt.prompts).length,
         lastReadAll: state.prompt.lastReadAll || defaultDate,
     };
 };
