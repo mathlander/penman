@@ -46,13 +46,18 @@ class NewPromptCard extends Component<Props> {
         const timestamp = Date.now();
         if (this.state.body.length && this.state.title.length) {
             this.props.create(this.props.authenticatedUser, {
-                ...this.state,
+                title: this.state.title,
+                body: this.state.body,
                 authorId: this.props.authenticatedUser.authorId,
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
                 promptId: -timestamp,
             });
         }
+        this.setState({
+            title: '',
+            body: '',
+        });
     }
 
     render() {
@@ -63,11 +68,11 @@ class NewPromptCard extends Component<Props> {
                     <h6>New Prompt</h6>
                     <div className="divider"></div>
                     <div className="input-field">
-                        <input id="title" type="text" className="validate" onChange={this.handleInputChange} required autoFocus />
+                        <input id="title" type="text" className="validate" onChange={this.handleInputChange} value={this.state.title} required autoFocus />
                         <label htmlFor="title">Title</label>
                     </div>
                     <div className="input-field">
-                        <textarea id="body" className="validate materialize-textarea" data-length="100000000" onChange={this.handleTextAreaChange} required />
+                        <textarea id="body" className="validate materialize-textarea" data-length="100000000" onChange={this.handleTextAreaChange} value={this.state.body} required />
                         <label htmlFor="body">Prompt</label>
                     </div>
                     <div className="input-field center">

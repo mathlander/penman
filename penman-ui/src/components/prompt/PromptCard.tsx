@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { Component } from 'react';
+import M from 'materialize-css';
 import { IAuthenticatedUser, IPrompt } from '../../store/types';
 
 export interface IPromptCardProps {
@@ -9,22 +10,59 @@ export interface IPromptCardProps {
     deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt) => any;
 };
 
-const PromptCard = (props: IPromptCardProps) => {
-    return (
-        <div className="prompt card-panel white container">
-            <div className="prompt-details row">
-                <div className="prompt-title s12 m6">{props.prompt.title}</div>
-                <div className="prompt-contents s12 m6">{props.prompt.body}</div>
-            </div>
-            <div className="secondary-content row">
-                <div className="created-date s3">Created: {Date.now()}</div>
-                <div className="modified-date s3">Modified: {Date.now()}</div>
-                <div className="prompt-delete s6">
-                    <i className="material-icons" onClick={() => props.deleteEntity(props.user, props.prompt)}>delete_outline</i>
+interface IPromptCardState {
+    toolTipInstance?: M.Tooltip | null,
+};
+
+class PromptCard extends Component<IPromptCardProps> {
+    state: IPromptCardState = {
+        toolTipInstance: null,
+    }
+
+    componentDidMount() {
+        const { createdDate, modifiedDate } = this.props.prompt;
+        const tooltipped = document.querySelectorAll(`.tooltip-prompt-cc-${this.props.prompt.promptId}`);
+        const toolTipInstance = M.Tooltip.init(
+                tooltipped,
+                {
+                    enterDelay: 500,
+                    exitDelay: 10,
+                    html: `
+                        <p className="created-date">Created: ${createdDate && createdDate.toLocaleDateString()}</p>
+                        <p className="modified-date">Modified: ${modifiedDate && modifiedDate.toLocaleDateString()}</p>
+                    `,
+                }
+            ).shift();
+        this.setState({
+            toolTipInstance
+        });
+    }
+
+    componentWillUnmount() {
+        this.state.toolTipInstance?.destroy();
+    }
+
+    render() {
+        const { prompt, user, deleteEntity } = this.props;
+        const { promptId, title, body } = prompt;
+        return (
+            <div className="prompt card-panel white row">
+                <div className="card">
+                    <div className={`card-content tooltip-prompt-cc-${promptId}`}>
+                        <span className="card-title">{title}</span>
+                        <p>{body}</p>
+                    </div>
+                    <div className="card-action">
+                        <div className="row">
+                            <a href="/dashboard">
+                                <i className="material-icons small" onClick={() => deleteEntity(user, prompt)}>delete_outline</i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
 };
 
 export default PromptCard;
