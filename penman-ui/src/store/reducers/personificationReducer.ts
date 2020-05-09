@@ -1,6 +1,5 @@
-import { personificationConstants } from '../../config/constants';
+import { defaultDate, personificationConstants, offlineConstants } from '../../config/constants';
 import { IPersonification, IPersonificationCollection, IPersonificationState, IPersonificationErrorState, IPersonificationReducerAction } from '../types';
-import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IPersonificationErrorState = {
     internalErrorMessage: null,
@@ -12,6 +11,7 @@ const readLocalStorage = () : IPersonificationState => {
         personifications: {},
         personificationErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.personifications).forEach((personification) => {
@@ -28,6 +28,7 @@ const updateLocalStorage = (state: IPersonificationState) : void => {
         personifications: state.personifications,
         personificationErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -47,6 +48,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -57,7 +59,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new personification to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified personification definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -76,6 +78,20 @@ const personificationReducer = (state: IPersonificationState = initState, action
             delete nextState.personifications[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case personificationConstants.CREATE_NEW_PERSONIFICATION_TIMEOUT:
+            nextState = {
+                ...state,
+                personificationErrorState: action.suppressTimeoutAlert
+                    ? state.personificationErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case personificationConstants.DELETE_PERSONIFICATION:
             const deletedPersonification: IPersonification = action.payload;
@@ -83,6 +99,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.personifications[deletedPersonification.personificationId];
             updateLocalStorage(nextState);
@@ -106,12 +123,27 @@ const personificationReducer = (state: IPersonificationState = initState, action
             };
             updateLocalStorage(nextState);
             return nextState;
+        case personificationConstants.DELETE_PERSONIFICATION_TIMEOUT:
+            nextState = {
+                ...state,
+                personificationErrorState: action.suppressTimeoutAlert
+                    ? state.personificationErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case personificationConstants.READ_ALL_PERSONIFICATIONS:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -122,7 +154,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                     internalErrorMessage: 'The API returned an error while attempting to read all personifications for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the personification collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -142,12 +174,27 @@ const personificationReducer = (state: IPersonificationState = initState, action
             });
             updateLocalStorage(nextState);
             return nextState;
+        case personificationConstants.READ_ALL_PERSONIFICATIONS_TIMEOUT:
+            nextState = {
+                ...state,
+                personificationErrorState: action.suppressTimeoutAlert
+                    ? state.personificationErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case personificationConstants.READ_PERSONIFICATION:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -158,7 +205,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                     internalErrorMessage: 'The API returned an error while attempting to read all personifications for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the personification collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -175,6 +222,20 @@ const personificationReducer = (state: IPersonificationState = initState, action
             };
             updateLocalStorage(nextState);
             return nextState;
+        case personificationConstants.READ_PERSONIFICATION_TIMEOUT:
+            nextState = {
+                ...state,
+                personificationErrorState: action.suppressTimeoutAlert
+                    ? state.personificationErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case personificationConstants.UPDATE_PERSONIFICATION:
             const pendingUpdatedPersonification: IPersonification = action.payload;
@@ -186,6 +247,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -196,7 +258,7 @@ const personificationReducer = (state: IPersonificationState = initState, action
                     internalErrorMessage: 'The API returned an error while attempting to read all personifications for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the personification collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -210,6 +272,20 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 },
                 personificationErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case personificationConstants.UPDATE_PERSONIFICATION_TIMEOUT:
+            nextState = {
+                ...state,
+                personificationErrorState: action.suppressTimeoutAlert
+                    ? state.personificationErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

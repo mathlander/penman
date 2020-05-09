@@ -51,10 +51,11 @@ export interface IAuthenticationState {
 
 export interface IAuthReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IAuthenticationErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -85,7 +86,7 @@ export interface IWelcomeReducerAction {
     type: string;
     payload?: any;
     error?: IWelcomeErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -130,24 +131,18 @@ export interface IBookState {
     books: Record<number, IBook>;
     bookErrorState: IBookErrorState;
     pendingActions: IBookReducerAction[];
+    offlineActionQueue: IBookReducerAction[];
     lastReadAll: Date;
 };
 
 export interface IBookReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IBookErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * BookActions
- */
-
-//
 
 
 
@@ -179,24 +174,18 @@ export interface IChapterState {
     chapters: Record<number, IChapter>;
     chapterErrorState: IChapterErrorState;
     pendingActions: IChapterReducerAction[];
+    offlineActionQueue: IChapterReducerAction[];
     lastReadAll: Date;
 };
 
 export interface IChapterReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IChapterErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * ChapterActions
- */
-
-//
 
 
 
@@ -228,24 +217,18 @@ export interface IPersonificationState {
     personifications: Record<number, IPersonification>;
     personificationErrorState: IPersonificationErrorState;
     pendingActions: IPersonificationReducerAction[];
+    offlineActionQueue: IPersonificationReducerAction[];
     lastReadAll: Date;
 };
 
 export interface IPersonificationReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IPersonificationErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * PersonificationActions
- */
-
-//
 
 
 
@@ -275,24 +258,18 @@ export interface IPromptState {
     prompts: Record<number, IPrompt>;
     promptErrorState: IPromptErrorState;
     pendingActions: IPromptReducerAction[];
+    offlineActionQueue: IPromptReducerAction[];
     lastReadAll: Date;
 };
 
 export interface IPromptReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IPromptErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * PromptActions
- */
-
-//
 
 
 
@@ -324,24 +301,18 @@ export interface IShortState {
     shorts: Record<number, IShort>;
     shortErrorState: IShortErrorState;
     pendingActions: IShortReducerAction[];
+    offlineActionQueue: IShortReducerAction[];
     lastReadAll: Date;
 };
 
 export interface IShortReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: IShortErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * ShortActions
- */
-
-//
 
 
 
@@ -372,24 +343,18 @@ export interface ITimelineState {
     timelines: Record<number, ITimeline>;
     timelineErrorState: ITimelineErrorState;
     pendingActions: ITimelineReducerAction[];
+    offlineActionQueue: ITimelineReducerAction[];
     lastReadAll: Date;
 };
 
 export interface ITimelineReducerAction {
     timestamp: number;
+    suppressTimeoutAlert: boolean;
     type: string;
     payload?: any;
     error?: ITimelineErrorState;
-    memento?: () => void;
+    memento?: (suppressTimeoutAlert: boolean) => void;
 };
-
-
-
-/**
- * TimelineActions
- */
-
-//
 
 
 

@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { apiConstants, timelineConstants } from '../../config/constants';
+import axios, { AxiosRequestConfig } from 'axios';
+import { apiConstants, timelineConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, ITimeline, ITimelineCollection, ITimelineErrorState, INewTimeline } from '../types';
 
-export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline) => {
+export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/create`;
         const data = {
@@ -10,14 +10,16 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline) 
             eventStart: newTimeline.eventStart.toISOString(),
             eventEnd: newTimeline.eventEnd.toISOString(),
         };
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE, payload: newTimeline, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
                 data,
@@ -28,31 +30,43 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline) 
                 timelineResponseDto.eventEnd = new Date(response.data.eventEnd);
                 timelineResponseDto.createdDate = new Date(response.data.createdDate);
                 timelineResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_SUCCESS, payload: timelineResponseDto, timestamp });
+                dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_SUCCESS, payload: timelineResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: ITimelineErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to register the new timeline record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: ITimelineErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: ITimelineErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to register the new timeline record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE, payload: newTimeline, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: timelineConstants.READ_ALL_TIMELINES, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -64,31 +78,43 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
                     timeline.createdDate = new Date(response.data.timelines[idx].createdDate);
                     timeline.modifiedDate = new Date(response.data.timelines[idx].modifiedDate);
                 });
-                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_SUCCESS, payload: readAllResponseDto, timestamp });
+                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: ITimelineErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: ITimelineErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: ITimelineErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.READ_ALL_TIMELINES, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const read = (authUser: IAuthenticatedUser, timelineId: number) => {
+export const read = (authUser: IAuthenticatedUser, timelineId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/read?timelineId=${timelineId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: timelineConstants.READ_TIMELINE, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -98,21 +124,31 @@ export const read = (authUser: IAuthenticatedUser, timelineId: number) => {
                 readResponseDto.eventEnd = new Date(response.data.eventEnd);
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: readResponseDto, timestamp });
+                dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: ITimelineErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: ITimelineErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: timelineConstants.READ_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: ITimelineErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: timelineConstants.READ_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.READ_ALL_TIMELINES, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const update = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
+export const update = (authUser: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/update`;
         const data = {
@@ -120,14 +156,16 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
             eventStart: timeline.eventStart.toISOString(),
             eventEnd: timeline.eventEnd.toISOString(),
         };
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: timelineConstants.UPDATE_TIMELINE, payload: timeline, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
                 data,
@@ -138,46 +176,68 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
                 updateResponseDto.eventEnd = new Date(response.data.eventEnd);
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.UPDATE_TIMELINE_SUCCESS, payload: updateResponseDto, timestamp });
+                dispatch({ type: timelineConstants.UPDATE_TIMELINE_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: ITimelineErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to update the specified timeline record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: ITimelineErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: ITimelineErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to update the specified timeline record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: timelineConstants.UPDATE_TIMELINE_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.UPDATE_TIMELINE, payload: timeline, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline) => {
+export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.timelinesController}/delete?authorId=${authUser.authorId}&timelineId=${timeline.timelineId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: timelineConstants.DELETE_TIMELINE, payload: timeline, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
                 config
             ).then(() => {
-                dispatch({ type: timelineConstants.DELETE_TIMELINE_SUCCESS, timestamp });
+                dispatch({ type: timelineConstants.DELETE_TIMELINE_SUCCESS, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: ITimelineErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to delete the specified timeline record from the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: ITimelineErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: timelineConstants.DELETE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: ITimelineErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to delete the specified timeline record from the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: timelineConstants.DELETE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: timelineConstants.DELETE_TIMELINE_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: timelineConstants.DELETE_TIMELINE, payload: timeline, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 

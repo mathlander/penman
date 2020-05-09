@@ -1,6 +1,5 @@
-import { timelineConstants } from '../../config/constants';
+import { defaultDate, timelineConstants, offlineConstants } from '../../config/constants';
 import { ITimeline, ITimelineCollection, ITimelineState, ITimelineErrorState, ITimelineReducerAction } from '../types';
-import { defaultDate } from '../../config/constants';
 
 const nullErrorState: ITimelineErrorState = {
     internalErrorMessage: null,
@@ -12,6 +11,7 @@ const readLocalStorage = () : ITimelineState => {
         timelines: {},
         timelineErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.timelines).forEach((timeline) => {
@@ -29,6 +29,7 @@ const updateLocalStorage = (state: ITimelineState) : void => {
         timelines: state.timelines,
         timelineErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -48,6 +49,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -58,7 +60,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new timeline to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified timeline definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -77,6 +79,20 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             delete nextState.timelines[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case timelineConstants.CREATE_NEW_TIMELINE_TIMEOUT:
+            nextState = {
+                ...state,
+                timelineErrorState: action.suppressTimeoutAlert
+                    ? state.timelineErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case timelineConstants.DELETE_TIMELINE:
             const deletedTimeline: ITimeline = action.payload;
@@ -84,6 +100,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.timelines[deletedTimeline.timelineId];
             updateLocalStorage(nextState);
@@ -95,7 +112,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                     internalErrorMessage: 'The API returned an error while attempting to delete the timeline.',
                     displayErrorMessage: 'An error occurred while attempting to delete this timeline.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -107,12 +124,27 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             };
             updateLocalStorage(nextState);
             return nextState;
+        case timelineConstants.DELETE_TIMELINE_TIMEOUT:
+            nextState = {
+                ...state,
+                timelineErrorState: action.suppressTimeoutAlert
+                    ? state.timelineErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case timelineConstants.READ_ALL_TIMELINES:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -123,7 +155,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                     internalErrorMessage: 'The API returned an error while attempting to read all timelines for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the timeline collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -143,12 +175,27 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             });
             updateLocalStorage(nextState);
             return nextState;
+        case timelineConstants.READ_ALL_TIMELINES_TIMEOUT:
+            nextState = {
+                ...state,
+                timelineErrorState: action.suppressTimeoutAlert
+                    ? state.timelineErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case timelineConstants.READ_TIMELINE:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -159,7 +206,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                     internalErrorMessage: 'The API returned an error while attempting to read all timelines for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the timeline collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -176,6 +223,20 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             };
             updateLocalStorage(nextState);
             return nextState;
+        case timelineConstants.READ_TIMELINE_TIMEOUT:
+            nextState = {
+                ...state,
+                timelineErrorState: action.suppressTimeoutAlert
+                    ? state.timelineErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case timelineConstants.UPDATE_TIMELINE:
             const pendingUpdatedTimeline: ITimeline = action.payload;
@@ -187,6 +248,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -197,7 +259,7 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                     internalErrorMessage: 'The API returned an error while attempting to read all timelines for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the timeline collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -211,6 +273,20 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 },
                 timelineErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case timelineConstants.UPDATE_TIMELINE_TIMEOUT:
+            nextState = {
+                ...state,
+                timelineErrorState: action.suppressTimeoutAlert
+                    ? state.timelineErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

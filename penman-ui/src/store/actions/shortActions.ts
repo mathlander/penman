@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { apiConstants, shortConstants } from '../../config/constants';
+import axios, { AxiosRequestConfig } from 'axios';
+import { apiConstants, shortConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IShort, IShortCollection, IShortErrorState, INewShort } from '../types';
 
-export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
+export const create = (authUser: IAuthenticatedUser, newShort: INewShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/create`;
         const data = {
@@ -10,14 +10,16 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
             eventStart: newShort.eventStart.toISOString(),
             eventEnd: newShort.eventEnd.toISOString(),
         };
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: shortConstants.CREATE_NEW_SHORT, payload: newShort, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
                 data,
@@ -28,31 +30,43 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort) => {
                 shortResponseDto.eventEnd = new Date(response.data.eventEnd);
                 shortResponseDto.createdDate = new Date(response.data.createdDate);
                 shortResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.CREATE_NEW_SHORT_SUCCESS, payload: shortResponseDto, timestamp });
+                dispatch({ type: shortConstants.CREATE_NEW_SHORT_SUCCESS, payload: shortResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IShortErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to register the new short record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IShortErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IShortErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to register the new short record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: shortConstants.CREATE_NEW_SHORT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.CREATE_NEW_SHORT, payload: newShort, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
+export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: shortConstants.READ_ALL_SHORTS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -64,31 +78,43 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date) => {
                     short.createdDate = new Date(response.data.shorts[idx].createdDate);
                     short.modifiedDate = new Date(response.data.shorts[idx].modifiedDate);
                 });
-                dispatch({ type: shortConstants.READ_ALL_SHORTS_SUCCESS, payload: readAllResponseDto, timestamp });
+                dispatch({ type: shortConstants.READ_ALL_SHORTS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IShortErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IShortErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: shortConstants.READ_ALL_SHORTS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IShortErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: shortConstants.READ_ALL_SHORTS_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: shortConstants.READ_ALL_SHORTS_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.READ_ALL_SHORTS, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const read = (authUser: IAuthenticatedUser, shortId: number) => {
+export const read = (authUser: IAuthenticatedUser, shortId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/read?shortId=${shortId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: shortConstants.READ_SHORT, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -98,21 +124,31 @@ export const read = (authUser: IAuthenticatedUser, shortId: number) => {
                 readResponseDto.eventEnd = new Date(response.data.eventEnd);
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.READ_SHORT_SUCCESS, payload: readResponseDto, timestamp });
+                dispatch({ type: shortConstants.READ_SHORT_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IShortErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IShortErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: shortConstants.READ_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IShortErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: shortConstants.READ_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: shortConstants.READ_ALL_SHORTS_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.READ_ALL_SHORTS, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const update = (authUser: IAuthenticatedUser, short: IShort) => {
+export const update = (authUser: IAuthenticatedUser, short: IShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/update`;
         const data = {
@@ -120,14 +156,16 @@ export const update = (authUser: IAuthenticatedUser, short: IShort) => {
             eventStart: short.eventStart.toISOString(),
             eventEnd: short.eventEnd.toISOString(),
         };
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: shortConstants.UPDATE_SHORT, payload: short, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
                 data,
@@ -138,46 +176,68 @@ export const update = (authUser: IAuthenticatedUser, short: IShort) => {
                 updateResponseDto.eventEnd = new Date(response.data.eventEnd);
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.UPDATE_SHORT_SUCCESS, payload: updateResponseDto, timestamp });
+                dispatch({ type: shortConstants.UPDATE_SHORT_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IShortErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to update the specified short record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IShortErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: shortConstants.UPDATE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IShortErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to update the specified short record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: shortConstants.UPDATE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: shortConstants.UPDATE_SHORT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.UPDATE_SHORT, payload: short, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort) => {
+export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.shortsController}/delete?authorId=${authUser.authorId}&shortId=${short.shortId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: shortConstants.DELETE_SHORT, payload: short, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
                 config
             ).then(() => {
-                dispatch({ type: shortConstants.DELETE_SHORT_SUCCESS, timestamp });
+                dispatch({ type: shortConstants.DELETE_SHORT_SUCCESS, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IShortErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to delete the specified short record from the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IShortErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: shortConstants.DELETE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IShortErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to delete the specified short record from the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: shortConstants.DELETE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: shortConstants.DELETE_SHORT_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: shortConstants.DELETE_SHORT, payload: short, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 

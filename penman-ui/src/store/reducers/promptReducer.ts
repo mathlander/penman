@@ -1,6 +1,5 @@
-import { promptConstants } from '../../config/constants';
+import { defaultDate, promptConstants, offlineConstants } from '../../config/constants';
 import { IPrompt, IPromptCollection, IPromptState, IPromptErrorState, IPromptReducerAction } from '../types';
-import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IPromptErrorState = {
     internalErrorMessage: null,
@@ -12,6 +11,7 @@ const readLocalStorage = () : IPromptState => {
         prompts: {},
         promptErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.prompts).forEach((prompt) => {
@@ -27,6 +27,7 @@ const updateLocalStorage = (state: IPromptState) : void => {
         prompts: state.prompts,
         promptErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -46,6 +47,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -56,7 +58,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new prompt to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified prompt definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -75,6 +77,20 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             delete nextState.prompts[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case promptConstants.CREATE_NEW_PROMPT_TIMEOUT:
+            nextState = {
+                ...state,
+                promptErrorState: action.suppressTimeoutAlert
+                    ? state.promptErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case promptConstants.DELETE_PROMPT:
             const deletedPrompt: IPrompt = action.payload;
@@ -82,6 +98,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.prompts[deletedPrompt.promptId];
             updateLocalStorage(nextState);
@@ -93,7 +110,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                     internalErrorMessage: 'The API returned an error while attempting to delete the prompt.',
                     displayErrorMessage: 'An error occurred while attempting to delete this prompt.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -105,12 +122,27 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             };
             updateLocalStorage(nextState);
             return nextState;
+        case promptConstants.DELETE_PROMPT_TIMEOUT:
+            nextState = {
+                ...state,
+                promptErrorState: action.suppressTimeoutAlert
+                    ? state.promptErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case promptConstants.READ_ALL_PROMPTS:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -121,7 +153,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                     internalErrorMessage: 'The API returned an error while attempting to read all prompts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the prompt collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -141,12 +173,27 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             });
             updateLocalStorage(nextState);
             return nextState;
+        case promptConstants.READ_ALL_PROMPTS_TIMEOUT:
+            nextState = {
+                ...state,
+                promptErrorState: action.suppressTimeoutAlert
+                    ? state.promptErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case promptConstants.READ_PROMPT:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -157,7 +204,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                     internalErrorMessage: 'The API returned an error while attempting to read all prompts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the prompt collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -174,6 +221,20 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             };
             updateLocalStorage(nextState);
             return nextState;
+        case promptConstants.READ_PROMPT_TIMEOUT:
+            nextState = {
+                ...state,
+                promptErrorState: action.suppressTimeoutAlert
+                    ? state.promptErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case promptConstants.UPDATE_PROMPT:
             const pendingUpdatedPrompt: IPrompt = action.payload;
@@ -185,6 +246,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -195,7 +257,7 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                     internalErrorMessage: 'The API returned an error while attempting to read all prompts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the prompt collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -209,6 +271,20 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 },
                 promptErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case promptConstants.UPDATE_PROMPT_TIMEOUT:
+            nextState = {
+                ...state,
+                promptErrorState: action.suppressTimeoutAlert
+                    ? state.promptErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

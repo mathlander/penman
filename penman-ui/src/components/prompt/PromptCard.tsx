@@ -14,7 +14,7 @@ interface IPromptCardState {
     toolTipInstances: M.Tooltip[];
     body: string;
     title: string;
-    isEditing: Boolean;
+    isEditing: boolean;
 };
 
 class PromptCard extends Component<IPromptCardProps> {

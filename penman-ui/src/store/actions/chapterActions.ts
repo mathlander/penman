@@ -1,19 +1,21 @@
-import axios from 'axios';
-import { apiConstants, chapterConstants } from '../../config/constants';
+import axios, { AxiosRequestConfig } from 'axios';
+import { apiConstants, chapterConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IChapter, IChapterCollection, IChapterErrorState, INewChapter } from '../types';
 
-export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter) => {
+export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.chaptersController}/create`;
         const data = newChapter;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER, payload: newChapter, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
                 data,
@@ -22,31 +24,43 @@ export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter) =>
                 const chapterResponseDto: IChapter = response.data;
                 chapterResponseDto.createdDate = new Date(response.data.createdDate);
                 chapterResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_SUCCESS, payload: chapterResponseDto, timestamp });
+                dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_SUCCESS, payload: chapterResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IChapterErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to register the new chapter record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IChapterErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IChapterErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to register the new chapter record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER, payload: newChapter, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const readAll = (authUser: IAuthenticatedUser, bookId: number) => {
+export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.chaptersController}/readall?authorId=${authUser.authorId}&bookId=${bookId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: chapterConstants.READ_ALL_CHAPTERS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -56,31 +70,43 @@ export const readAll = (authUser: IAuthenticatedUser, bookId: number) => {
                     chapter.createdDate = new Date(response.data.chapters[idx].createdDate);
                     chapter.modifiedDate = new Date(response.data.chapters[idx].modifiedDate);
                 });
-                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_SUCCESS, payload: readAllResponseDto, timestamp });
+                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IChapterErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IChapterErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IChapterErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.READ_ALL_CHAPTERS, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const read = (authUser: IAuthenticatedUser, chapterId: number) => {
+export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.chaptersController}/read?chapterId=${chapterId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: chapterConstants.READ_CHAPTER, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
                 config
@@ -88,32 +114,44 @@ export const read = (authUser: IAuthenticatedUser, chapterId: number) => {
                 const readResponseDto: IChapter = response.data;
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: readResponseDto, timestamp });
+                dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IChapterErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IChapterErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: chapterConstants.READ_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IChapterErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: chapterConstants.READ_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.READ_ALL_CHAPTERS, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const update = (authUser: IAuthenticatedUser, chapter: IChapter) => {
+export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.chaptersController}/update`;
         const data = chapter;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: chapterConstants.UPDATE_CHAPTER, payload: chapter, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
                 data,
@@ -122,46 +160,68 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter) => {
                 const updateResponseDto: IChapter = response.data;
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.UPDATE_CHAPTER_SUCCESS, payload: updateResponseDto, timestamp });
+                dispatch({ type: chapterConstants.UPDATE_CHAPTER_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IChapterErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to update the specified chapter record with the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IChapterErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IChapterErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to update the specified chapter record with the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: chapterConstants.UPDATE_CHAPTER_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.UPDATE_CHAPTER, payload: chapter, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 
-export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter) => {
+export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
         const url = `${apiConstants.chaptersController}/delete?authorId=${authUser.authorId}&chapterId=${chapter.chapterId}`;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authUser.token}`,
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
-        const memento = () => {
+        const memento = (suppressTimeoutAlert: boolean) => {
+            dispatch({ type: chapterConstants.DELETE_CHAPTER, payload: chapter, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
                 config
             ).then(() => {
-                dispatch({ type: chapterConstants.DELETE_CHAPTER_SUCCESS, timestamp });
+                dispatch({ type: chapterConstants.DELETE_CHAPTER_SUCCESS, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                const error: IChapterErrorState = {
-                    internalErrorMessage: `Received the following error while attempting to delete the specified chapter record from the API: ${err}`,
-                    displayErrorMessage: `Encountered error while attempting to contact the API.  Will retry automatically when connectivity is restored.`
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                    // timed out or the API wasn't running
+                    const error: IChapterErrorState =  {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: chapterConstants.DELETE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IChapterErrorState = err.response.data || {
+                        internalErrorMessage: `Received the following error while attempting to delete the specified chapter record from the API: ${err}`,
+                        displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
+                    };
+                    dispatch({ type: chapterConstants.DELETE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
                 }
-                dispatch({ type: chapterConstants.DELETE_CHAPTER_ERROR, error, timestamp });
             });
         };
-        dispatch({ type: chapterConstants.DELETE_CHAPTER, payload: chapter, timestamp, memento });
-        memento();
+        memento(suppressTimeoutAlert);
     };
 };
 

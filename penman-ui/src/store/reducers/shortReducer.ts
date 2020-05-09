@@ -1,6 +1,5 @@
-import { shortConstants } from '../../config/constants';
+import { defaultDate, shortConstants, offlineConstants } from '../../config/constants';
 import { IShort, IShortCollection, IShortState, IShortErrorState, IShortReducerAction } from '../types';
-import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IShortErrorState = {
     internalErrorMessage: null,
@@ -12,6 +11,7 @@ const readLocalStorage = () : IShortState => {
         shorts: {},
         shortErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.shorts).forEach((short) => {
@@ -29,6 +29,7 @@ const updateLocalStorage = (state: IShortState) : void => {
         shorts: state.shorts,
         shortErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -48,6 +49,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -58,7 +60,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new short to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified short definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -77,6 +79,20 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             delete nextState.shorts[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case shortConstants.CREATE_NEW_SHORT_TIMEOUT:
+            nextState = {
+                ...state,
+                shortErrorState: action.suppressTimeoutAlert
+                    ? state.shortErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case shortConstants.DELETE_SHORT:
             const deletedShort: IShort = action.payload;
@@ -84,6 +100,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.shorts[deletedShort.shortId];
             updateLocalStorage(nextState);
@@ -95,7 +112,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                     internalErrorMessage: 'The API returned an error while attempting to delete the short.',
                     displayErrorMessage: 'An error occurred while attempting to delete this short.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -107,12 +124,27 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             };
             updateLocalStorage(nextState);
             return nextState;
+        case shortConstants.DELETE_SHORT_TIMEOUT:
+            nextState = {
+                ...state,
+                shortErrorState: action.suppressTimeoutAlert
+                    ? state.shortErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case shortConstants.READ_ALL_SHORTS:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -123,7 +155,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                     internalErrorMessage: 'The API returned an error while attempting to read all shorts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the short collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -143,12 +175,27 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             });
             updateLocalStorage(nextState);
             return nextState;
+        case shortConstants.READ_ALL_SHORTS_TIMEOUT:
+            nextState = {
+                ...state,
+                shortErrorState: action.suppressTimeoutAlert
+                    ? state.shortErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case shortConstants.READ_SHORT:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -159,7 +206,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                     internalErrorMessage: 'The API returned an error while attempting to read all shorts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the short collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -176,6 +223,20 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             };
             updateLocalStorage(nextState);
             return nextState;
+        case shortConstants.READ_SHORT_TIMEOUT:
+            nextState = {
+                ...state,
+                shortErrorState: action.suppressTimeoutAlert
+                    ? state.shortErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case shortConstants.UPDATE_SHORT:
             const pendingUpdatedShort: IShort = action.payload;
@@ -187,6 +248,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -197,7 +259,7 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                     internalErrorMessage: 'The API returned an error while attempting to read all shorts for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the short collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -211,6 +273,20 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 },
                 shortErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case shortConstants.UPDATE_SHORT_TIMEOUT:
+            nextState = {
+                ...state,
+                shortErrorState: action.suppressTimeoutAlert
+                    ? state.shortErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

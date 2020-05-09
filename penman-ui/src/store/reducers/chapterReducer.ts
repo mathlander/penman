@@ -1,6 +1,5 @@
-import { chapterConstants } from '../../config/constants';
+import { defaultDate, chapterConstants, offlineConstants } from '../../config/constants';
 import { IChapter, IChapterCollection, IChapterState, IChapterErrorState, IChapterReducerAction } from '../types';
-import { defaultDate } from '../../config/constants';
 
 const nullErrorState: IChapterErrorState = {
     internalErrorMessage: null,
@@ -12,6 +11,7 @@ const readLocalStorage = () : IChapterState => {
         chapters: {},
         chapterErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.chapters).forEach((chapter) => {
@@ -27,6 +27,7 @@ const updateLocalStorage = (state: IChapterState) : void => {
         chapters: state.chapters,
         chapterErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -46,6 +47,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -56,7 +58,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new chapter to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified chapter definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -75,6 +77,20 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             delete nextState.chapters[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case chapterConstants.CREATE_NEW_CHAPTER_TIMEOUT:
+            nextState = {
+                ...state,
+                chapterErrorState: action.suppressTimeoutAlert
+                    ? state.chapterErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case chapterConstants.DELETE_CHAPTER:
             const deletedChapter: IChapter = action.payload;
@@ -82,6 +98,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.chapters[deletedChapter.chapterId];
             updateLocalStorage(nextState);
@@ -93,7 +110,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                     internalErrorMessage: 'The API returned an error while attempting to delete the chapter.',
                     displayErrorMessage: 'An error occurred while attempting to delete this chapter.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -105,12 +122,27 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             };
             updateLocalStorage(nextState);
             return nextState;
+        case chapterConstants.DELETE_CHAPTER_TIMEOUT:
+            nextState = {
+                ...state,
+                chapterErrorState: action.suppressTimeoutAlert
+                    ? state.chapterErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case chapterConstants.READ_ALL_CHAPTERS:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -121,7 +153,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                     internalErrorMessage: 'The API returned an error while attempting to read all chapters for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the chapter collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -141,12 +173,27 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             });
             updateLocalStorage(nextState);
             return nextState;
+        case chapterConstants.READ_ALL_CHAPTERS_TIMEOUT:
+            nextState = {
+                ...state,
+                chapterErrorState: action.suppressTimeoutAlert
+                    ? state.chapterErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case chapterConstants.READ_CHAPTER:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -157,7 +204,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                     internalErrorMessage: 'The API returned an error while attempting to read all chapters for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the chapter collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -174,6 +221,20 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             };
             updateLocalStorage(nextState);
             return nextState;
+        case chapterConstants.READ_CHAPTER_TIMEOUT:
+            nextState = {
+                ...state,
+                chapterErrorState: action.suppressTimeoutAlert
+                    ? state.chapterErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case chapterConstants.UPDATE_CHAPTER:
             const pendingUpdatedChapter: IChapter = action.payload;
@@ -185,6 +246,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -195,7 +257,7 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                     internalErrorMessage: 'The API returned an error while attempting to read all chapters for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the chapter collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -209,6 +271,20 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 },
                 chapterErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case chapterConstants.UPDATE_CHAPTER_TIMEOUT:
+            nextState = {
+                ...state,
+                chapterErrorState: action.suppressTimeoutAlert
+                    ? state.chapterErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

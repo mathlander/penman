@@ -1,4 +1,4 @@
-import { bookConstants } from '../../config/constants';
+import { bookConstants, offlineConstants } from '../../config/constants';
 import { IBook, IBookCollection, IBookState, IBookErrorState, IBookReducerAction } from '../types';
 import { defaultDate } from '../../config/constants';
 
@@ -12,6 +12,7 @@ const readLocalStorage = () : IBookState => {
         books: {},
         bookErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
     Object.values(localStorageState.books).forEach((book) => {
@@ -27,6 +28,7 @@ const updateLocalStorage = (state: IBookState) : void => {
         books: state.books,
         bookErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -46,6 +48,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -56,7 +59,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                     internalErrorMessage: 'An unidentified error occurred while attempting to submit the new book to the API.',
                     displayErrorMessage: 'An error occurred while attempting to create the specified book definition.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -75,6 +78,20 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
             delete nextState.books[-action.timestamp];
             updateLocalStorage(nextState);
             return nextState;
+        case bookConstants.CREATE_NEW_BOOK_TIMEOUT:
+            nextState = {
+                ...state,
+                bookErrorState: action.suppressTimeoutAlert
+                    ? state.bookErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case bookConstants.DELETE_BOOK:
             const deletedBook: IBook = action.payload;
@@ -82,6 +99,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             delete nextState.books[deletedBook.bookId];
             updateLocalStorage(nextState);
@@ -93,7 +111,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                     internalErrorMessage: 'The API returned an error while attempting to delete the book.',
                     displayErrorMessage: 'An error occurred while attempting to delete this book.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -105,12 +123,27 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
             };
             updateLocalStorage(nextState);
             return nextState;
+        case bookConstants.DELETE_BOOK_TIMEOUT:
+            nextState = {
+                ...state,
+                bookErrorState: action.suppressTimeoutAlert
+                    ? state.bookErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case bookConstants.READ_ALL_BOOKS:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -121,7 +154,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                     internalErrorMessage: 'The API returned an error while attempting to read all books for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the book collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -141,12 +174,27 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
             });
             updateLocalStorage(nextState);
             return nextState;
+        case bookConstants.READ_ALL_BOOKS_TIMEOUT:
+            nextState = {
+                ...state,
+                bookErrorState: action.suppressTimeoutAlert
+                    ? state.bookErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case bookConstants.READ_BOOK:
             nextState = {
                 ...state,
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -157,7 +205,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                     internalErrorMessage: 'The API returned an error while attempting to read all books for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the book collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -174,6 +222,20 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
             };
             updateLocalStorage(nextState);
             return nextState;
+        case bookConstants.READ_BOOK_TIMEOUT:
+            nextState = {
+                ...state,
+                bookErrorState: action.suppressTimeoutAlert
+                    ? state.bookErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case bookConstants.UPDATE_BOOK:
             const pendingUpdatedBook: IBook = action.payload;
@@ -185,6 +247,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                 },
                 // handle replayed actions
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -195,7 +258,7 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                     internalErrorMessage: 'The API returned an error while attempting to read all books for the current author.',
                     displayErrorMessage: 'An error occurred while attempting to retrieve the book collection.',
                 },
-                // pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
             updateLocalStorage(nextState);
             return nextState;
@@ -209,6 +272,20 @@ const bookReducer = (state: IBookState = initState, action: IBookReducerAction):
                 },
                 bookErrorState: nullErrorState,
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+        case bookConstants.UPDATE_BOOK_TIMEOUT:
+            nextState = {
+                ...state,
+                bookErrorState: action.suppressTimeoutAlert
+                    ? state.bookErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;
