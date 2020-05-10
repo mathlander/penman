@@ -2,6 +2,8 @@ import React from 'react';
 import { ConnectedRouter } from 'connected-react-router';
 import { Switch, Route } from 'react-router-dom';
 import { history } from './store/reducers/rootReducer';
+import OfflineManager from './components/offline/OfflineManager';
+import Toaster from './components/toaster/Toaster';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './components/dashboard/Dashboard';
 import BooksPage from './components/book/BooksPage';
@@ -18,6 +20,8 @@ function App() {
   return (
     <ConnectedRouter history={history}>
       <div className="App">
+        <OfflineManager />
+        <Toaster />
         <Navbar />
         <Switch>
           <Route exact path="/" component={Welcome} />
