@@ -24,7 +24,7 @@ export const create = (authUser: IAuthenticatedUser, newPrompt: INewPrompt, supp
                 const promptResponseDto: IPrompt = response.data;
                 promptResponseDto.createdDate = new Date(response.data.createdDate);
                 promptResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: promptConstants.CREATE_NEW_PROMPT_SUCCESS, payload: promptResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: promptConstants.CREATE_NEW_PROMPT_SUCCESS, payload: promptResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -32,15 +32,15 @@ export const create = (authUser: IAuthenticatedUser, newPrompt: INewPrompt, supp
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: promptConstants.CREATE_NEW_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.CREATE_NEW_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPromptErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to register the new prompt record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: promptConstants.CREATE_NEW_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.CREATE_NEW_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -70,7 +70,7 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                     prompt.createdDate = new Date(response.data.prompts[idx].createdDate);
                     prompt.modifiedDate = new Date(response.data.prompts[idx].modifiedDate);
                 });
-                dispatch({ type: promptConstants.READ_ALL_PROMPTS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: promptConstants.READ_ALL_PROMPTS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -78,15 +78,15 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: promptConstants.READ_ALL_PROMPTS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.READ_ALL_PROMPTS_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPromptErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all prompt records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: promptConstants.READ_ALL_PROMPTS_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.READ_ALL_PROMPTS_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -114,7 +114,7 @@ export const read = (authUser: IAuthenticatedUser, promptId: number, suppressTim
                 const readResponseDto: IPrompt = response.data;
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: promptConstants.READ_PROMPT_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: promptConstants.READ_PROMPT_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -122,15 +122,15 @@ export const read = (authUser: IAuthenticatedUser, promptId: number, suppressTim
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: promptConstants.READ_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.READ_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPromptErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all prompt records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: promptConstants.READ_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.READ_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -160,7 +160,7 @@ export const update = (authUser: IAuthenticatedUser, prompt: IPrompt, suppressTi
                 const updateResponseDto: IPrompt = response.data;
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: promptConstants.UPDATE_PROMPT_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: promptConstants.UPDATE_PROMPT_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -168,15 +168,15 @@ export const update = (authUser: IAuthenticatedUser, prompt: IPrompt, suppressTi
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: promptConstants.UPDATE_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.UPDATE_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPromptErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to update the specified prompt record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: promptConstants.UPDATE_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.UPDATE_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -201,7 +201,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, prompt: IPrompt, supp
                 url,
                 config
             ).then(() => {
-                dispatch({ type: promptConstants.DELETE_PROMPT_SUCCESS, timestamp, suppressTimeoutAlert });
+                dispatch({ type: promptConstants.DELETE_PROMPT_SUCCESS, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -209,15 +209,15 @@ export const deleteEntity = (authUser: IAuthenticatedUser, prompt: IPrompt, supp
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: promptConstants.DELETE_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.DELETE_PROMPT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPromptErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to delete the specified prompt record from the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: promptConstants.DELETE_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: promptConstants.DELETE_PROMPT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };

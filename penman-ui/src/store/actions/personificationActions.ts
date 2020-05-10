@@ -28,7 +28,7 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
                 personificationResponseDto.birthday = new Date(response.data.birthday);
                 personificationResponseDto.createdDate = new Date(response.data.createdDate);
                 personificationResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_SUCCESS, payload: personificationResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_SUCCESS, payload: personificationResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -36,15 +36,15 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPersonificationErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to register the new personification record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -75,7 +75,7 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                     personification.createdDate = new Date(response.data.personifications[idx].createdDate);
                     personification.modifiedDate = new Date(response.data.personifications[idx].modifiedDate);
                 });
-                dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -83,15 +83,15 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPersonificationErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all personification records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -120,7 +120,7 @@ export const read = (authUser: IAuthenticatedUser, personificationId: number, su
                 readResponseDto.birthday = new Date(response.data.birthday);
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: personificationConstants.READ_PERSONIFICATION_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: personificationConstants.READ_PERSONIFICATION_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -128,15 +128,15 @@ export const read = (authUser: IAuthenticatedUser, personificationId: number, su
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: personificationConstants.READ_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.READ_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPersonificationErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all personification records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: personificationConstants.READ_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.READ_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -170,7 +170,7 @@ export const update = (authUser: IAuthenticatedUser, personification: IPersonifi
                 updateResponseDto.birthday = new Date(response.data.birthday);
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -178,15 +178,15 @@ export const update = (authUser: IAuthenticatedUser, personification: IPersonifi
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPersonificationErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to update the specified personification record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -211,7 +211,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPer
                 url,
                 config
             ).then(() => {
-                dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_SUCCESS, timestamp, suppressTimeoutAlert });
+                dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_SUCCESS, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -219,15 +219,15 @@ export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPer
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IPersonificationErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to delete the specified personification record from the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: personificationConstants.DELETE_PERSONIFICATION_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };

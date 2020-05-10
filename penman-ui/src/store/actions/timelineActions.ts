@@ -30,7 +30,7 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline, 
                 timelineResponseDto.eventEnd = new Date(response.data.eventEnd);
                 timelineResponseDto.createdDate = new Date(response.data.createdDate);
                 timelineResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_SUCCESS, payload: timelineResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_SUCCESS, payload: timelineResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -38,15 +38,15 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline, 
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: ITimelineErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to register the new timeline record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -78,7 +78,7 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                     timeline.createdDate = new Date(response.data.timelines[idx].createdDate);
                     timeline.modifiedDate = new Date(response.data.timelines[idx].modifiedDate);
                 });
-                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: timelineConstants.READ_ALL_TIMELINES_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -86,15 +86,15 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: ITimelineErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.READ_ALL_TIMELINES_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -124,7 +124,7 @@ export const read = (authUser: IAuthenticatedUser, timelineId: number, suppressT
                 readResponseDto.eventEnd = new Date(response.data.eventEnd);
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -132,15 +132,15 @@ export const read = (authUser: IAuthenticatedUser, timelineId: number, suppressT
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: timelineConstants.READ_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.READ_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: ITimelineErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all timeline records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: timelineConstants.READ_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.READ_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -176,7 +176,7 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline, suppre
                 updateResponseDto.eventEnd = new Date(response.data.eventEnd);
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: timelineConstants.UPDATE_TIMELINE_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: timelineConstants.UPDATE_TIMELINE_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -184,15 +184,15 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline, suppre
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: ITimelineErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to update the specified timeline record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.UPDATE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -217,7 +217,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline, 
                 url,
                 config
             ).then(() => {
-                dispatch({ type: timelineConstants.DELETE_TIMELINE_SUCCESS, timestamp, suppressTimeoutAlert });
+                dispatch({ type: timelineConstants.DELETE_TIMELINE_SUCCESS, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -225,15 +225,15 @@ export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline, 
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: timelineConstants.DELETE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.DELETE_TIMELINE_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: ITimelineErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to delete the specified timeline record from the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: timelineConstants.DELETE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: timelineConstants.DELETE_TIMELINE_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };

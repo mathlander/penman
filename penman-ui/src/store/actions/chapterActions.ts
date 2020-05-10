@@ -24,7 +24,7 @@ export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, su
                 const chapterResponseDto: IChapter = response.data;
                 chapterResponseDto.createdDate = new Date(response.data.createdDate);
                 chapterResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_SUCCESS, payload: chapterResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_SUCCESS, payload: chapterResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -32,15 +32,15 @@ export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, su
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IChapterErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to register the new chapter record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -70,7 +70,7 @@ export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTi
                     chapter.createdDate = new Date(response.data.chapters[idx].createdDate);
                     chapter.modifiedDate = new Date(response.data.chapters[idx].modifiedDate);
                 });
-                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -78,15 +78,15 @@ export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTi
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IChapterErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -114,7 +114,7 @@ export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTi
                 const readResponseDto: IChapter = response.data;
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -122,15 +122,15 @@ export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTi
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: chapterConstants.READ_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.READ_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IChapterErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all chapter records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: chapterConstants.READ_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.READ_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -160,7 +160,7 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppress
                 const updateResponseDto: IChapter = response.data;
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: chapterConstants.UPDATE_CHAPTER_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: chapterConstants.UPDATE_CHAPTER_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -168,15 +168,15 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppress
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IChapterErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to update the specified chapter record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.UPDATE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -201,7 +201,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter, su
                 url,
                 config
             ).then(() => {
-                dispatch({ type: chapterConstants.DELETE_CHAPTER_SUCCESS, timestamp, suppressTimeoutAlert });
+                dispatch({ type: chapterConstants.DELETE_CHAPTER_SUCCESS, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -209,15 +209,15 @@ export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter, su
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: chapterConstants.DELETE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.DELETE_CHAPTER_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IChapterErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to delete the specified chapter record from the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: chapterConstants.DELETE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: chapterConstants.DELETE_CHAPTER_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };

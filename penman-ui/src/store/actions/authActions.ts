@@ -39,7 +39,7 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTime
                 },
                 timeout: apiConstants.timeout,
             };
-            dispatch({ type: authConstants.REFRESH_TOKEN, timestamp, suppressTimeoutAlert });
+            dispatch({ type: authConstants.REFRESH_TOKEN, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
                 data,
@@ -50,7 +50,7 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTime
                 refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
                 refreshResponseDto.createdDate = new Date(response.data.createdDate);
                 refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -66,7 +66,7 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTime
                         internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
                         displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
                     }
-                    dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };

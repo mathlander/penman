@@ -30,7 +30,7 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort, suppre
                 shortResponseDto.eventEnd = new Date(response.data.eventEnd);
                 shortResponseDto.createdDate = new Date(response.data.createdDate);
                 shortResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.CREATE_NEW_SHORT_SUCCESS, payload: shortResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: shortConstants.CREATE_NEW_SHORT_SUCCESS, payload: shortResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -38,15 +38,15 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort, suppre
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IShortErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to register the new short record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.CREATE_NEW_SHORT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -78,7 +78,7 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                     short.createdDate = new Date(response.data.shorts[idx].createdDate);
                     short.modifiedDate = new Date(response.data.shorts[idx].modifiedDate);
                 });
-                dispatch({ type: shortConstants.READ_ALL_SHORTS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: shortConstants.READ_ALL_SHORTS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -86,15 +86,15 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: shortConstants.READ_ALL_SHORTS_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.READ_ALL_SHORTS_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IShortErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: shortConstants.READ_ALL_SHORTS_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.READ_ALL_SHORTS_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -124,7 +124,7 @@ export const read = (authUser: IAuthenticatedUser, shortId: number, suppressTime
                 readResponseDto.eventEnd = new Date(response.data.eventEnd);
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.READ_SHORT_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: shortConstants.READ_SHORT_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -132,15 +132,15 @@ export const read = (authUser: IAuthenticatedUser, shortId: number, suppressTime
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: shortConstants.READ_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.READ_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IShortErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to retrieve all short records with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: shortConstants.READ_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.READ_SHORT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -176,7 +176,7 @@ export const update = (authUser: IAuthenticatedUser, short: IShort, suppressTime
                 updateResponseDto.eventEnd = new Date(response.data.eventEnd);
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: shortConstants.UPDATE_SHORT_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert });
+                dispatch({ type: shortConstants.UPDATE_SHORT_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -184,15 +184,15 @@ export const update = (authUser: IAuthenticatedUser, short: IShort, suppressTime
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: shortConstants.UPDATE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.UPDATE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IShortErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to update the specified short record with the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: shortConstants.UPDATE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.UPDATE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
@@ -217,7 +217,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort, suppre
                 url,
                 config
             ).then(() => {
-                dispatch({ type: shortConstants.DELETE_SHORT_SUCCESS, timestamp, suppressTimeoutAlert });
+                dispatch({ type: shortConstants.DELETE_SHORT_SUCCESS, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
@@ -225,15 +225,15 @@ export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort, suppre
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     };
-                    dispatch({ type: shortConstants.DELETE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.DELETE_SHORT_TIMEOUT, error, timestamp, suppressTimeoutAlert, memento });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert, memento });
                 } else {
                     // api returned a response... should only happen if refresh token somehow fails to process
                     const error: IShortErrorState = err.response.data || {
                         internalErrorMessage: `Received the following error while attempting to delete the specified short record from the API: ${err}`,
                         displayErrorMessage: `Encountered an error while attempting to process the request.  This will not be automatically retried.`
                     };
-                    dispatch({ type: shortConstants.DELETE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: shortConstants.DELETE_SHORT_ERROR, error, timestamp, suppressTimeoutAlert, memento });
                 }
             });
         };
