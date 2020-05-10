@@ -37,6 +37,14 @@ const initState: IChapterState = readLocalStorage();
 const chapterReducer = (state: IChapterState = initState, action: IChapterReducerAction): IChapterState => {
     let nextState = initState;
     switch (action.type) {
+        case chapterConstants.CHAPTER_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                chapterErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case chapterConstants.CREATE_NEW_CHAPTER:
             const pendingNewChapter: IChapter = action.payload;
             nextState = {

@@ -4,20 +4,20 @@ import { IAuthenticatedUser, IPersonification, IPersonificationCollection, IPers
 
 export const create = (authUser: IAuthenticatedUser, newPersonification: INewPersonification, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/create`;
-        const data = {
-            ...newPersonification,
-            birthday: newPersonification.birthday.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.personificationsController}/create`;
+            const data = {
+                ...newPersonification,
+                birthday: newPersonification.birthday.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: personificationConstants.CREATE_NEW_PERSONIFICATION, payload: newPersonification, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -48,22 +48,22 @@ export const create = (authUser: IAuthenticatedUser, newPersonification: INewPer
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.personificationsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: personificationConstants.READ_ALL_PERSONIFICATIONS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -95,22 +95,22 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, personificationId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/read?personificationId=${personificationId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.personificationsController}/read?personificationId=${personificationId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: personificationConstants.READ_PERSONIFICATION, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -140,26 +140,26 @@ export const read = (authUser: IAuthenticatedUser, personificationId: number, su
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/update`;
-        const data = {
-            ...personification,
-            birthday: personification.birthday.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.personificationsController}/update`;
+            const data = {
+                ...personification,
+                birthday: personification.birthday.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: personificationConstants.UPDATE_PERSONIFICATION, payload: personification, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -190,22 +190,22 @@ export const update = (authUser: IAuthenticatedUser, personification: IPersonifi
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.personificationsController}/delete?authorId=${authUser.authorId}&personificationId=${personification.personificationId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.personificationsController}/delete?authorId=${authUser.authorId}&personificationId=${personification.personificationId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: personificationConstants.DELETE_PERSONIFICATION, payload: personification, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -231,7 +231,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, personification: IPer
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

@@ -38,6 +38,14 @@ const initState: IBookState = readLocalStorage();
 const bookReducer = (state: IBookState = initState, action: IBookReducerAction): IBookState => {
     let nextState = initState;
     switch (action.type) {
+        case bookConstants.BOOK_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                bookErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case bookConstants.CREATE_NEW_BOOK:
             const pendingNewBook: IBook = action.payload;
             nextState = {

@@ -4,21 +4,21 @@ import { IAuthenticatedUser, ITimeline, ITimelineCollection, ITimelineErrorState
 
 export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/create`;
-        const data = {
-            ...newTimeline,
-            eventStart: newTimeline.eventStart.toISOString(),
-            eventEnd: newTimeline.eventEnd.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.timelinesController}/create`;
+            const data = {
+                ...newTimeline,
+                eventStart: newTimeline.eventStart.toISOString(),
+                eventEnd: newTimeline.eventEnd.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: timelineConstants.CREATE_NEW_TIMELINE, payload: newTimeline, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -50,22 +50,22 @@ export const create = (authUser: IAuthenticatedUser, newTimeline: INewTimeline, 
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.timelinesController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: timelineConstants.READ_ALL_TIMELINES, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -98,22 +98,22 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, timelineId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/read?timelineId=${timelineId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.timelinesController}/read?timelineId=${timelineId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: timelineConstants.READ_TIMELINE, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -144,27 +144,27 @@ export const read = (authUser: IAuthenticatedUser, timelineId: number, suppressT
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/update`;
-        const data = {
-            ...timeline,
-            eventStart: timeline.eventStart.toISOString(),
-            eventEnd: timeline.eventEnd.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.timelinesController}/update`;
+            const data = {
+                ...timeline,
+                eventStart: timeline.eventStart.toISOString(),
+                eventEnd: timeline.eventEnd.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: timelineConstants.UPDATE_TIMELINE, payload: timeline, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -196,22 +196,22 @@ export const update = (authUser: IAuthenticatedUser, timeline: ITimeline, suppre
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.timelinesController}/delete?authorId=${authUser.authorId}&timelineId=${timeline.timelineId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.timelinesController}/delete?authorId=${authUser.authorId}&timelineId=${timeline.timelineId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: timelineConstants.DELETE_TIMELINE, payload: timeline, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -237,7 +237,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, timeline: ITimeline, 
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

@@ -38,6 +38,14 @@ const initState: IPersonificationState = readLocalStorage();
 const personificationReducer = (state: IPersonificationState = initState, action: IPersonificationReducerAction): IPersonificationState => {
     let nextState = initState;
     switch (action.type) {
+        case personificationConstants.PERSONIFICATION_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                personificationErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case personificationConstants.CREATE_NEW_PERSONIFICATION:
             const pendingNewPersonification: IPersonification = action.payload;
             nextState = {

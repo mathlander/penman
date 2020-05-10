@@ -39,6 +39,14 @@ const initState: ITimelineState = readLocalStorage();
 const timelineReducer = (state: ITimelineState = initState, action: ITimelineReducerAction): ITimelineState => {
     let nextState = initState;
     switch (action.type) {
+        case timelineConstants.TIMELINE_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                timelineErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case timelineConstants.CREATE_NEW_TIMELINE:
             const pendingNewTimeline: ITimeline = action.payload;
             nextState = {

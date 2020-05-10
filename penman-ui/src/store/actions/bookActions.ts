@@ -4,17 +4,17 @@ import { IAuthenticatedUser, IBook, IBookCollection, IBookErrorState, INewBook }
 
 export const create = (authUser: IAuthenticatedUser, newBook: INewBook, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/create`;
-        const data = newBook;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.booksController}/create`;
+            const data = newBook;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: bookConstants.CREATE_NEW_BOOK, payload: newBook, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -44,22 +44,22 @@ export const create = (authUser: IAuthenticatedUser, newBook: INewBook, suppress
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.booksController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: bookConstants.READ_ALL_BOOKS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -90,22 +90,22 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, bookId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/read?authorId=${authUser.authorId}&bookId=${bookId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.booksController}/read?authorId=${authUser.authorId}&bookId=${bookId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: bookConstants.READ_BOOK, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -134,23 +134,23 @@ export const read = (authUser: IAuthenticatedUser, bookId: number, suppressTimeo
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, book: IBook, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/update`;
-        const data = book;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.booksController}/update`;
+            const data = book;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: bookConstants.UPDATE_BOOK, payload: book, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -180,22 +180,22 @@ export const update = (authUser: IAuthenticatedUser, book: IBook, suppressTimeou
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, book: IBook, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.booksController}/delete?authorId=${authUser.authorId}&bookId=${book.bookId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.booksController}/delete?authorId=${authUser.authorId}&bookId=${book.bookId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: bookConstants.DELETE_BOOK, payload: book, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -221,7 +221,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, book: IBook, suppress
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

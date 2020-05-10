@@ -37,6 +37,14 @@ const initState: IPromptState = readLocalStorage();
 const promptReducer = (state: IPromptState = initState, action: IPromptReducerAction): IPromptState => {
     let nextState = initState;
     switch (action.type) {
+        case promptConstants.PROMPT_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                promptErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case promptConstants.CREATE_NEW_PROMPT:
             const pendingNewPrompt: IPrompt = action.payload;
             nextState = {

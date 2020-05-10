@@ -4,17 +4,17 @@ import { IAuthenticatedUser, IPrompt, IPromptCollection, IPromptErrorState, INew
 
 export const create = (authUser: IAuthenticatedUser, newPrompt: INewPrompt, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.promptsController}/create`;
-        const data = newPrompt;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.promptsController}/create`;
+            const data = newPrompt;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: promptConstants.CREATE_NEW_PROMPT, payload: newPrompt, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -44,22 +44,22 @@ export const create = (authUser: IAuthenticatedUser, newPrompt: INewPrompt, supp
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.promptsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.promptsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: promptConstants.READ_ALL_PROMPTS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -90,22 +90,22 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, promptId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.promptsController}/read?promptId=${promptId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.promptsController}/read?promptId=${promptId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: promptConstants.READ_PROMPT, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -134,23 +134,23 @@ export const read = (authUser: IAuthenticatedUser, promptId: number, suppressTim
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.promptsController}/update`;
-        const data = prompt;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.promptsController}/update`;
+            const data = prompt;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: promptConstants.UPDATE_PROMPT, payload: prompt, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -180,22 +180,22 @@ export const update = (authUser: IAuthenticatedUser, prompt: IPrompt, suppressTi
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.promptsController}/delete?authorId=${authUser.authorId}&promptId=${prompt.promptId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.promptsController}/delete?authorId=${authUser.authorId}&promptId=${prompt.promptId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: promptConstants.DELETE_PROMPT, payload: prompt, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -221,7 +221,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, prompt: IPrompt, supp
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

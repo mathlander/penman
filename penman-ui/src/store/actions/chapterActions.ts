@@ -4,17 +4,17 @@ import { IAuthenticatedUser, IChapter, IChapterCollection, IChapterErrorState, I
 
 export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.chaptersController}/create`;
-        const data = newChapter;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.chaptersController}/create`;
+            const data = newChapter;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: chapterConstants.CREATE_NEW_CHAPTER, payload: newChapter, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -44,22 +44,22 @@ export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, su
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.chaptersController}/readall?authorId=${authUser.authorId}&bookId=${bookId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.chaptersController}/readall?authorId=${authUser.authorId}&bookId=${bookId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: chapterConstants.READ_ALL_CHAPTERS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -90,22 +90,22 @@ export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTi
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.chaptersController}/read?chapterId=${chapterId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.chaptersController}/read?chapterId=${chapterId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: chapterConstants.READ_CHAPTER, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -134,23 +134,23 @@ export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTi
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.chaptersController}/update`;
-        const data = chapter;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.chaptersController}/update`;
+            const data = chapter;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: chapterConstants.UPDATE_CHAPTER, payload: chapter, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -180,22 +180,22 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppress
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.chaptersController}/delete?authorId=${authUser.authorId}&chapterId=${chapter.chapterId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.chaptersController}/delete?authorId=${authUser.authorId}&chapterId=${chapter.chapterId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: chapterConstants.DELETE_CHAPTER, payload: chapter, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -221,7 +221,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, chapter: IChapter, su
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

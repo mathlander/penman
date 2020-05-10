@@ -39,6 +39,14 @@ const initState: IShortState = readLocalStorage();
 const shortReducer = (state: IShortState = initState, action: IShortReducerAction): IShortState => {
     let nextState = initState;
     switch (action.type) {
+        case shortConstants.SHORT_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                shortErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case shortConstants.CREATE_NEW_SHORT:
             const pendingNewShort: IShort = action.payload;
             nextState = {

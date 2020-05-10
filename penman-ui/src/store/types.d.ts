@@ -55,7 +55,7 @@ export interface IAuthReducerAction {
     type: string;
     payload?: any;
     error?: IAuthenticationErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -86,7 +86,7 @@ export interface IWelcomeReducerAction {
     type: string;
     payload?: any;
     error?: IWelcomeErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -102,6 +102,17 @@ export interface ILeadEmail {
     message: string;
     callbackDate: Date;
 };
+
+
+
+/**
+ * OfflineReducer
+ */
+
+export interface IReplayableAction {
+    timestamp: number;
+    memento: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
+}
 
 
 
@@ -141,7 +152,7 @@ export interface IBookReducerAction {
     type: string;
     payload?: any;
     error?: IBookErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -184,7 +195,7 @@ export interface IChapterReducerAction {
     type: string;
     payload?: any;
     error?: IChapterErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -227,7 +238,7 @@ export interface IPersonificationReducerAction {
     type: string;
     payload?: any;
     error?: IPersonificationErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -268,7 +279,7 @@ export interface IPromptReducerAction {
     type: string;
     payload?: any;
     error?: IPromptErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -311,7 +322,7 @@ export interface IShortReducerAction {
     type: string;
     payload?: any;
     error?: IShortErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 
@@ -353,7 +364,7 @@ export interface ITimelineReducerAction {
     type: string;
     payload?: any;
     error?: ITimelineErrorState;
-    memento?: (suppressTimeoutAlert: boolean) => void;
+    memento?: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 };
 
 

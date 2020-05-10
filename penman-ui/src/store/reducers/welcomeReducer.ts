@@ -11,6 +11,12 @@ const initState: IWelcomeState = {
 
 const welcomeReducer = (state: IWelcomeState = initState, action: IWelcomeReducerAction): IWelcomeState => {
     switch (action.type) {
+        case welcomeConstants.WELCOME_CLEAR_ERROR:
+            return {
+                ...state,
+                welcomeErrorState: nullErrorState,
+            };
+
         case welcomeConstants.EMAIL:
             return state;
         case welcomeConstants.EMAIL_SUCCESS:

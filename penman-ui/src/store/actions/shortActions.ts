@@ -4,21 +4,21 @@ import { IAuthenticatedUser, IShort, IShortCollection, IShortErrorState, INewSho
 
 export const create = (authUser: IAuthenticatedUser, newShort: INewShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/create`;
-        const data = {
-            ...newShort,
-            eventStart: newShort.eventStart.toISOString(),
-            eventEnd: newShort.eventEnd.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.shortsController}/create`;
+            const data = {
+                ...newShort,
+                eventStart: newShort.eventStart.toISOString(),
+                eventEnd: newShort.eventEnd.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: shortConstants.CREATE_NEW_SHORT, payload: newShort, timestamp, suppressTimeoutAlert, memento });
             axios.post(
                 url,
@@ -50,22 +50,22 @@ export const create = (authUser: IAuthenticatedUser, newShort: INewShort, suppre
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.shortsController}/readall?authorId=${authUser.authorId}&lastReadAll=${lastReadAll.toISOString()}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: shortConstants.READ_ALL_SHORTS, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -98,22 +98,22 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const read = (authUser: IAuthenticatedUser, shortId: number, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/read?shortId=${shortId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.shortsController}/read?shortId=${shortId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: shortConstants.READ_SHORT, timestamp, suppressTimeoutAlert, memento });
             axios.get(
                 url,
@@ -144,27 +144,27 @@ export const read = (authUser: IAuthenticatedUser, shortId: number, suppressTime
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const update = (authUser: IAuthenticatedUser, short: IShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/update`;
-        const data = {
-            ...short,
-            eventStart: short.eventStart.toISOString(),
-            eventEnd: short.eventEnd.toISOString(),
-        };
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.shortsController}/update`;
+            const data = {
+                ...short,
+                eventStart: short.eventStart.toISOString(),
+                eventEnd: short.eventEnd.toISOString(),
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: shortConstants.UPDATE_SHORT, payload: short, timestamp, suppressTimeoutAlert, memento });
             axios.patch(
                 url,
@@ -196,22 +196,22 @@ export const update = (authUser: IAuthenticatedUser, short: IShort, suppressTime
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 
 export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
-        const url = `${apiConstants.shortsController}/delete?authorId=${authUser.authorId}&shortId=${short.shortId}`;
-        const config: AxiosRequestConfig = {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authUser.token}`,
-            },
-            timeout: apiConstants.timeout,
-        };
         const timestamp = Date.now();
-        const memento = (suppressTimeoutAlert: boolean) => {
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            const url = `${apiConstants.shortsController}/delete?authorId=${authUser.authorId}&shortId=${short.shortId}`;
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.token}`,
+                },
+                timeout: apiConstants.timeout,
+            };
             dispatch({ type: shortConstants.DELETE_SHORT, payload: short, timestamp, suppressTimeoutAlert, memento });
             axios.delete(
                 url,
@@ -237,7 +237,7 @@ export const deleteEntity = (authUser: IAuthenticatedUser, short: IShort, suppre
                 }
             });
         };
-        memento(suppressTimeoutAlert);
+        memento(authUser, suppressTimeoutAlert);
     };
 };
 

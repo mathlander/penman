@@ -49,6 +49,14 @@ const initState: IAuthenticationState = readLocalStorage();
 const authReducer = (state: IAuthenticationState = initState, action: IAuthReducerAction): IAuthenticationState => {
     let nextState = initState;
     switch (action.type) {
+        case authConstants.AUTH_CLEAR_ERROR:
+            nextState = {
+                ...state,
+                authErrorState: nullErrorState,
+            };
+            updateLocalStorage(nextState);
+            return nextState;
+
         case authConstants.LOGIN:
             return {
                 ...state,
