@@ -42,8 +42,7 @@ const mapStateToProps = (state: IRootState) => {
         }));
     return {
         user: state.auth.authenticatedUser,
-        // isOffline: state.offline.isOffline,
-        isOffline: false,
+        isOffline: state.offline.isOffline,
         mergedActionQueue: mergedActions.sort((left, right) => (left.timestamp - right.timestamp)),
         mergedActionCount: mergedActions.length,
     };

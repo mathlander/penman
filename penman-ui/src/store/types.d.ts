@@ -9,6 +9,7 @@ export interface IRootState {
     router: RouterState<History<HistoryLocationState>>;
     auth: IAuthenticationState;
     welcome: IWelcomeState;
+    offline: IOfflineState;
     book: IBookState;
     chapter: IChapterState;
     personification: IPersonificationState;
@@ -113,6 +114,14 @@ export interface IReplayableAction {
     timestamp: number;
     memento: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => void;
 }
+
+export interface IOfflineState {
+    isOffline: boolean;
+};
+
+export interface IOfflineReducerAction {
+    type: string;
+};
 
 
 
