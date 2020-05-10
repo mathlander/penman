@@ -12,17 +12,18 @@ const mapStateToProps = (state: IRootState) => {
         authenticatedUser: state.auth.authenticatedUser,
         shorts: state.short.shorts,
         lastReadAll: state.short.lastReadAll || defaultDate,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
-        create: (user: IAuthenticatedUser, newShort: INewShort) => dispatch(create(user, newShort)),
-        read: (user: IAuthenticatedUser, shortId: number) => dispatch(read(user, shortId)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
-        update: (user: IAuthenticatedUser, short: IShort) => dispatch(update(user, short)),
-        deleteEntity: (user: IAuthenticatedUser, short: IShort) => dispatch(deleteEntity(user, short)),
+        create: (user: IAuthenticatedUser, newShort: INewShort, suppressTimeoutAlert: boolean) => dispatch(create(user, newShort, suppressTimeoutAlert)),
+        read: (user: IAuthenticatedUser, shortId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, shortId, suppressTimeoutAlert)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
+        update: (user: IAuthenticatedUser, short: IShort, suppressTimeoutAlert: boolean) => dispatch(update(user, short, suppressTimeoutAlert)),
+        deleteEntity: (user: IAuthenticatedUser, short: IShort, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, short, suppressTimeoutAlert)),
     };
 };
 
@@ -33,7 +34,7 @@ type Props = PropsFromRedux;
 
 class ShortsPage extends Component<Props> {
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
     }
 
     render() {

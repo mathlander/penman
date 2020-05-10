@@ -14,17 +14,18 @@ const mapStateToProps = (state: IRootState) => {
         prompts: state.prompt.prompts,
         promptsCount: Object.values(state.prompt.prompts).length,
         lastReadAll: state.prompt.lastReadAll || defaultDate,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
-        create: (user: IAuthenticatedUser, newPrompt: INewPrompt) => dispatch(create(user, newPrompt)),
-        read: (user: IAuthenticatedUser, promptId: number) => dispatch(read(user, promptId)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
-        update: (user: IAuthenticatedUser, prompt: IPrompt) => dispatch(update(user, prompt)),
-        deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt) => dispatch(deleteEntity(user, prompt)),
+        create: (user: IAuthenticatedUser, newPrompt: INewPrompt, suppressTimeoutAlert: boolean) => dispatch(create(user, newPrompt, suppressTimeoutAlert)),
+        read: (user: IAuthenticatedUser, promptId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, promptId, suppressTimeoutAlert)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
+        update: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => dispatch(update(user, prompt, suppressTimeoutAlert)),
+        deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, prompt, suppressTimeoutAlert)),
     };
 };
 
@@ -35,11 +36,11 @@ type Props = PropsFromRedux;
 
 class PromptsPage extends Component<Props> {
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
     }
 
     render() {
-        const { authenticatedUser } = this.props;
+        const { authenticatedUser, isOffline } = this.props;
         if (this.props.isTokenExpired(authenticatedUser)) {
             push('/signin');
         }
@@ -48,11 +49,12 @@ class PromptsPage extends Component<Props> {
                 <div className="prompts-work-area stories container grey-text text-darken-1 col s12 m6">
                     <NewPromptCard />
                     <div className="prompts">
-                        {Object.values(this.props.prompts).map(prompt =>
+                        {Object.values(this.props.prompts).reverse().map(prompt =>
                             <PromptCard
                                 key={`promptId:${prompt.promptId}`}
                                 prompt={prompt}
                                 user={authenticatedUser}
+                                isOffline={isOffline}
                                 update={this.props.update}
                                 deleteEntity={this.props.deleteEntity}
                             />

@@ -8,6 +8,7 @@ import bookImg from '../../img/book.jpg';
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
+        isOffline: state.offline.isOffline,
     };
 };
 

@@ -15,7 +15,7 @@ const mapStateToProps = (state: IRootState) => {
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
-        submitLead: (leadEmail: ILeadEmail) => dispatch(submitLead),
+        submitLead: (leadEmail: ILeadEmail) => dispatch(submitLead(leadEmail)),
     };
 };
 

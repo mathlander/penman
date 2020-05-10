@@ -9,13 +9,14 @@ const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         route: state.router.location.pathname,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         signOut: () => dispatch(signOut()),
-        refresh: (user: IAuthenticatedUser) => dispatch(refreshToken(user)),
+        refresh: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert)),
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
     };
 };
@@ -46,6 +47,7 @@ class Navbar extends Component<Props> {
 
     render() {
         const { authenticatedUser } = this.props;
+        const useAuthenticatedLinks = authenticatedUser.refreshTokenExpirationDate.getTime() > Date.now();
         return (
             <>
                 {/** top nav */}
@@ -62,13 +64,13 @@ class Navbar extends Component<Props> {
                 <ul id="side-menu" className="sidenav side-menu">
                     <li><Link to="#" className="subheader">PENMAN</Link></li>
                     <li><div className="divider"></div></li>
-                    {!authenticatedUser &&
+                    {!useAuthenticatedLinks &&
                         <>
                             <li><NavLink to="/signup" className="waves-effect left-align">Signup</NavLink></li>
                             <li><NavLink to="/signin" className="waves-effect left-align">Login</NavLink></li>
                         </>
                     }
-                    {!!authenticatedUser &&
+                    {useAuthenticatedLinks &&
                         <>
                             <li><NavLink to="/dashboard" className="waves-effect left-align">Dashboard</NavLink></li>
                             <li><NavLink to="/books" className="waves-effect left-align">Books</NavLink></li>

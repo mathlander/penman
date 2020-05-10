@@ -86,7 +86,7 @@ class OfflineManager extends Component<Props> {
             );
         }
         return (
-            <div data-pendingActionCount={this.props.mergedActionCount + this.props.refreshActionQueueCount} data-isOffline={this.props.isOffline} style={{display: 'none'}} />
+            <div data-pendingactioncount={this.props.mergedActionCount + this.props.refreshActionQueueCount} data-isoffline={this.props.isOffline} style={{display: 'none'}} />
         );
     }
 }

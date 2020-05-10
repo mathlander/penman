@@ -12,17 +12,18 @@ const mapStateToProps = (state: IRootState) => {
         authenticatedUser: state.auth.authenticatedUser,
         books: state.book.books,
         lastReadAll: state.book.lastReadAll || defaultDate,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
-        create: (user: IAuthenticatedUser, newBook: INewBook) => dispatch(create(user, newBook)),
-        read: (user: IAuthenticatedUser, bookId: number) => dispatch(read(user, bookId)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
-        update: (user: IAuthenticatedUser, book: IBook) => dispatch(update(user, book)),
-        deleteEntity: (user: IAuthenticatedUser, book: IBook) => dispatch(deleteEntity(user, book)),
+        create: (user: IAuthenticatedUser, newBook: INewBook, suppressTimeoutAlert: boolean) => dispatch(create(user, newBook, suppressTimeoutAlert)),
+        read: (user: IAuthenticatedUser, bookId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, bookId, suppressTimeoutAlert)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
+        update: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => dispatch(update(user, book, suppressTimeoutAlert)),
+        deleteEntity: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, book, suppressTimeoutAlert)),
     };
 };
 
@@ -33,7 +34,7 @@ type Props = PropsFromRedux;
 
 class BooksPage extends Component<Props> {
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
     }
 
     render() {

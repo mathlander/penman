@@ -12,17 +12,18 @@ const mapStateToProps = (state: IRootState) => {
         authenticatedUser: state.auth.authenticatedUser,
         timelines: state.timeline.timelines,
         lastReadAll: state.timeline.lastReadAll || defaultDate,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
     return {
         isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
-        create: (user: IAuthenticatedUser, newTimeline: INewTimeline) => dispatch(create(user, newTimeline)),
-        read: (user: IAuthenticatedUser, timelineId: number) => dispatch(read(user, timelineId)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date) => dispatch(readAll(user, lastReadAll)),
-        update: (user: IAuthenticatedUser, timeline: ITimeline) => dispatch(update(user, timeline)),
-        deleteEntity: (user: IAuthenticatedUser, timeline: ITimeline) => dispatch(deleteEntity(user, timeline)),
+        create: (user: IAuthenticatedUser, newTimeline: INewTimeline, suppressTimeoutAlert: boolean) => dispatch(create(user, newTimeline, suppressTimeoutAlert)),
+        read: (user: IAuthenticatedUser, timelineId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, timelineId, suppressTimeoutAlert)),
+        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
+        update: (user: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert: boolean) => dispatch(update(user, timeline, suppressTimeoutAlert)),
+        deleteEntity: (user: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, timeline, suppressTimeoutAlert)),
     };
 };
 
@@ -33,7 +34,7 @@ type Props = PropsFromRedux;
 
 class TimelinesPage extends Component<Props> {
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll);
+        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
     }
 
     render() {

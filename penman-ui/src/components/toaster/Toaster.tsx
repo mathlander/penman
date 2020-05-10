@@ -106,7 +106,7 @@ class Toaster extends Component<Props> {
         }
 
         return (
-            <div data-processedErrorCount={processedErrorCount} style={{display: 'none'}} />
+            <div data-processederrorcount={processedErrorCount} style={{display: 'none'}} />
         );
     }
 }

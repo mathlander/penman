@@ -6,8 +6,9 @@ export interface IPromptCardProps {
     key: string;
     prompt: IPrompt;
     user: IAuthenticatedUser;
-    update: (user: IAuthenticatedUser, prompt: IPrompt) => any;
-    deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt) => any;
+    isOffline: boolean;
+    update: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => any;
+    deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => any;
 };
 
 interface IPromptCardState {
@@ -48,7 +49,7 @@ class PromptCard extends Component<IPromptCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.prompt);
+        this.props.deleteEntity(this.props.user, this.props.prompt, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -66,7 +67,7 @@ class PromptCard extends Component<IPromptCardProps> {
             body: this.state.body,
             modifiedDate: new Date(),
         };
-        this.props.update(this.props.user, modifiedPrompt);
+        this.props.update(this.props.user, modifiedPrompt, this.props.isOffline);
         this.setState({
             isEditing: false,
         });
