@@ -23,6 +23,12 @@ const offlineReducer = (state: IOfflineState = initState, action: IOfflineReduce
                 isOffline: true,
             };
 
+        case offlineConstants.GO_ONLINE:
+            return {
+                ...state,
+                isOffline: false,
+            };
+
         case authConstants.LOGIN_SUCCESS:
         case authConstants.REFRESH_TOKEN_SUCCESS:
         case authConstants.CREATE_NEW_USER_SUCCESS:

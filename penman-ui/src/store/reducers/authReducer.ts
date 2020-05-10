@@ -1,4 +1,4 @@
-import { authConstants } from '../../config/constants';
+import { authConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthenticationState, IAuthReducerAction } from '../types';
 
 export const expiredUser: IAuthenticatedUser = {
@@ -26,6 +26,7 @@ const readLocalStorage = () : IAuthenticationState => {
         authenticatedUser: expiredUser,
         authErrorState: nullErrorState,
         pendingActions: [],
+        offlineActionQueue: [],
     };
     if (localStorageState.authenticatedUser) {
         localStorageState.authenticatedUser.tokenExpirationDate = new Date(localStorageState.authenticatedUser.tokenExpirationDate);
@@ -41,6 +42,7 @@ const updateLocalStorage = (state: IAuthenticationState) : void => {
         authenticatedUser: state.authenticatedUser,
         authErrorState: nullErrorState,
         pendingActions: state.pendingActions,
+        offlineActionQueue: state.offlineActionQueue,
     }));
 };
 
@@ -95,7 +97,8 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
         case authConstants.REFRESH_TOKEN:
             nextState = {
                 ...state,
-                pendingActions: [...state.pendingActions, action],
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
             return nextState;
         case authConstants.REFRESH_TOKEN_SUCCESS:
@@ -119,6 +122,20 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                 },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
+        case authConstants.REFRESH_TOKEN_TIMEOUT:
+            nextState = {
+                ...state,
+                authErrorState: action.suppressTimeoutAlert
+                    ? state.authErrorState
+                    : action.error || {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    },
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+            };
+            updateLocalStorage(nextState);
+            return nextState;
 
         case authConstants.CREATE_NEW_USER:
             nextState = {

@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { apiConstants, authConstants } from '../../config/constants';
+import axios, { AxiosRequestConfig } from 'axios';
+import { apiConstants, authConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthCredentials, INewUser } from '../types';
 
 export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser): boolean => {
@@ -7,7 +7,7 @@ export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser): boole
     return authenticatedUser.tokenExpirationDate.getTime() < Date.now();
 };
 
-export const refreshToken = (authenticatedUser: IAuthenticatedUser) => {
+export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert = false) => {
     /**
      * In order to take advantage of this feature, this method will need to be
      * bound to a connected component's properties.  For example:
@@ -19,35 +19,54 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser) => {
      *      }
      */
     return (dispatch: any) => {
-        const url = `${apiConstants.usersController}/refresh`;
-        const data = {
-            refreshToken: authenticatedUser.refreshToken,
-        };
-        const config = {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        };
         const timestamp = Date.now();
-        dispatch({ type: authConstants.REFRESH_TOKEN, timestamp });
-        axios.post(
-            url,
-            data,
-            config
-        ).then((response) => {
-            const refreshResponseDto: IAuthenticatedUser = response.data;
-            refreshResponseDto.tokenExpirationDate = new Date(response.data.tokenExpirationDate);
-            refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
-            refreshResponseDto.createdDate = new Date(response.data.createdDate);
-            refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-            dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp });
-        }).catch((err) => {
-            const error: IAuthenticationErrorState = {
-                internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
-                displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
-            }
-            dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp });
-        });
+        let invocationCounter = 0;
+        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
+            invocationCounter++;
+            const url = `${apiConstants.usersController}/refresh`;
+            const data = {
+                refreshToken: authenticatedUser.refreshTokenExpirationDate.getTime() >= user.refreshTokenExpirationDate.getTime()
+                    ? authenticatedUser.refreshToken
+                    : user.refreshToken,
+            };
+            const config: AxiosRequestConfig = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                timeout: apiConstants.timeout,
+            };
+            dispatch({ type: authConstants.REFRESH_TOKEN, timestamp, suppressTimeoutAlert });
+            axios.post(
+                url,
+                data,
+                config
+            ).then((response) => {
+                const refreshResponseDto: IAuthenticatedUser = response.data;
+                refreshResponseDto.tokenExpirationDate = new Date(response.data.tokenExpirationDate);
+                refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
+                refreshResponseDto.createdDate = new Date(response.data.createdDate);
+                refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+                dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp, suppressTimeoutAlert });
+            }).catch((err) => {
+                if ((err.code === 'ECONNABORTED' || err.response === undefined) && invocationCounter < offlineConstants.OFFLINE_REFRESH_TOKEN_RETRY_LIMIT) {
+                    // timed out or the API wasn't running
+                    const error: IAuthenticationErrorState = {
+                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                    };
+                    dispatch({ type: authConstants.REFRESH_TOKEN_TIMEOUT, error, timestamp, suppressTimeoutAlert });
+                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
+                } else {
+                    // api returned a response... should only happen if refresh token somehow fails to process
+                    const error: IAuthenticationErrorState = {
+                        internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
+                        displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
+                    }
+                    dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp, suppressTimeoutAlert });
+                }
+            });
+        };
+        memento(authenticatedUser, suppressTimeoutAlert);
     };
 };
 
@@ -55,7 +74,7 @@ export const signIn = (credentials: IAuthCredentials) => {
     return (dispatch: any) => {
         const url = `${apiConstants.usersController}/authenticate`;
         const data = credentials;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
             }
@@ -93,7 +112,7 @@ export const signUp = (newUser: INewUser) => {
     return (dispatch: any) => {
         const url = `${apiConstants.usersController}/create`;
         const data = newUser;
-        const config = {
+        const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
             }

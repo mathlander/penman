@@ -23,6 +23,7 @@ export const apiConstants = {
     relationshipsController: `${baseUrl}/relationships`,
     shortsController: `${baseUrl}/shorts`,
     timelinesController: `${baseUrl}/timelines`,
+    ping: `${baseUrl}/ping`,
     timeout: 5 * 1000,
 };
 
@@ -39,6 +40,7 @@ export const authConstants = {
     REFRESH_TOKEN: 'REFRESH_TOKEN',
     REFRESH_TOKEN_SUCCESS: 'REFRESH_TOKEN_SUCCESS',
     REFRESH_TOKEN_ERROR: 'REFRESH_TOKEN_ERROR',
+    REFRESH_TOKEN_TIMEOUT: 'REFRESH_TOKEN_TIMEOUT',
 
     CREATE_NEW_USER: 'CREATE_NEW_USER',
     CREATE_NEW_USER_SUCCESS: 'CREATE_NEW_USER_SUCCESS',
@@ -285,6 +287,8 @@ export const offlineConstants = {
 
     API_UNREACHABLE_INTERNAL_MESSAGE: 'The API is unreachable.  Queueing request to retry later.',
     API_UNREACHABLE_DISPLAY_MESSAGE: 'The API is not accessible.  Switching to offline mode.',
+
+    OFFLINE_REFRESH_TOKEN_RETRY_LIMIT: 175,
 };
 
 export const persistenceConstants = {
