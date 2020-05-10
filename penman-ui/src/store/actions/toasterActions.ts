@@ -6,7 +6,6 @@ import {
     personificationConstants,
     promptConstants,
     timelineConstants,
-    toasterConstants,
     welcomeConstants,
     shortConstants
 } from '../../config/constants';

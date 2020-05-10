@@ -3,18 +3,20 @@ import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import M from 'materialize-css';
 import { IRootState, IAuthenticatedUser, ILeadEmail } from '../../store/types';
-import { isAuthTokenExpired } from '../../store/actions/authActions';
+import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import { submitLead } from '../../store/actions/welcomeActions';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
+        isOffline: state.offline.isOffline,
     };
 };
 
 const mapDispatchToProps = (dispatch: any) => {
+    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
-        isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
+        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
         submitLead: (leadEmail: ILeadEmail) => dispatch(submitLead(leadEmail)),
     };
 };
@@ -64,8 +66,8 @@ class Welcome extends Component<Props> {
     }
 
     render() {
-        const { authenticatedUser } = this.props;
-        if (authenticatedUser && !this.props.isTokenExpired(authenticatedUser)) {
+        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        if (!isTokenExpired(authenticatedUser, isOffline)) {
             push('/dashboard');
         }
         return (

@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { connect, ConnectedProps } from 'react-redux';
 import M from 'materialize-css';
-import { signOut, refreshToken, isAuthTokenExpired } from '../../store/actions/authActions';
-import { IRootState, IAuthenticatedUser } from '../../store/types';
+import { signOut } from '../../store/actions/authActions';
+import { IRootState } from '../../store/types';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -16,8 +16,6 @@ const mapStateToProps = (state: IRootState) => {
 const mapDispatchToProps = (dispatch: any) => {
     return {
         signOut: () => dispatch(signOut()),
-        refresh: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert)),
-        isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
     };
 };
 

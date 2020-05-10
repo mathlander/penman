@@ -270,25 +270,12 @@ export const relationshipConstants = {
     },
 };
 
-export const toasterConstants = {
-    PROCESS_ERROR_AUTH: 'PROCESS_ERROR_AUTH',
-    PROCESS_ERROR_BOOK: 'PROCESS_ERROR_BOOK',
-    PROCESS_ERROR_CHAPTER: 'PROCESS_ERROR_CHAPTER',
-    PROCESS_ERROR_PERSONIFICATION: 'PROCESS_ERROR_PERSONIFICATION',
-    PROCESS_ERROR_PROMPT: 'PROCESS_ERROR_PROMPT',
-    PROCESS_ERROR_SHORT: 'PROCESS_ERROR_SHORT',
-    PROCESS_ERROR_TIMELINE: 'PROCESS_ERROR_TIMELINE',
-    PROCESS_ERROR_WELCOME: 'PROCESS_ERROR_WELCOME',
-};
-
 export const offlineConstants = {
     GO_OFFLINE: 'GO_OFFLINE',
     GO_ONLINE: 'GO_ONLINE',
 
     API_UNREACHABLE_INTERNAL_MESSAGE: 'The API is unreachable.  Queueing request to retry later.',
     API_UNREACHABLE_DISPLAY_MESSAGE: 'The API is not accessible.  Switching to offline mode.',
-
-    OFFLINE_REFRESH_TOKEN_RETRY_LIMIT: 175,
 };
 
 export const persistenceConstants = {

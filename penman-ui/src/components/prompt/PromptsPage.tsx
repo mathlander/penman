@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewPrompt, IPrompt } from '../../store/types';
-import { isAuthTokenExpired } from '../../store/actions/authActions';
+import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
 import NewPromptCard from './NewPromptCard';
 import PromptCard from './PromptCard';
@@ -19,8 +19,9 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
+    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
-        isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
+        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
         create: (user: IAuthenticatedUser, newPrompt: INewPrompt, suppressTimeoutAlert: boolean) => dispatch(create(user, newPrompt, suppressTimeoutAlert)),
         read: (user: IAuthenticatedUser, promptId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, promptId, suppressTimeoutAlert)),
         readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
@@ -40,8 +41,8 @@ class PromptsPage extends Component<Props> {
     }
 
     render() {
-        const { authenticatedUser, isOffline } = this.props;
-        if (this.props.isTokenExpired(authenticatedUser)) {
+        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         return (

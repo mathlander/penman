@@ -2,9 +2,15 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { apiConstants, authConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthCredentials, INewUser } from '../types';
 
-export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser): boolean => {
-    if (!authenticatedUser.tokenExpirationDate) return true;
-    return authenticatedUser.tokenExpirationDate.getTime() < Date.now();
+export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert: boolean, refresh: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => any): boolean => {
+    const now = Date.now();
+    if (authenticatedUser.refreshTokenExpirationDate.getTime() < now) {
+        return true;
+    } else if (authenticatedUser.tokenExpirationDate.getTime() < now) {
+        // fall-back on refreshToken
+        refresh(authenticatedUser, suppressTimeoutAlert);
+    }
+    return false;
 };
 
 export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert = false) => {
@@ -20,9 +26,7 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTime
      */
     return (dispatch: any) => {
         const timestamp = Date.now();
-        let invocationCounter = 0;
         const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
-            invocationCounter++;
             const url = `${apiConstants.usersController}/refresh`;
             const data = {
                 refreshToken: authenticatedUser.refreshTokenExpirationDate.getTime() >= user.refreshTokenExpirationDate.getTime()
@@ -48,7 +52,7 @@ export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTime
                 refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
                 dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp, suppressTimeoutAlert });
             }).catch((err) => {
-                if ((err.code === 'ECONNABORTED' || err.response === undefined) && invocationCounter < offlineConstants.OFFLINE_REFRESH_TOKEN_RETRY_LIMIT) {
+                if (err.code === 'ECONNABORTED' || err.response === undefined) {
                     // timed out or the API wasn't running
                     const error: IAuthenticationErrorState = {
                         internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
@@ -77,7 +81,8 @@ export const signIn = (credentials: IAuthCredentials) => {
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
         dispatch({ type: authConstants.LOGIN, payload: credentials, timestamp });
@@ -115,7 +120,8 @@ export const signUp = (newUser: INewUser) => {
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            timeout: apiConstants.timeout,
         };
         const timestamp = Date.now();
         dispatch({ type: authConstants.CREATE_NEW_USER, payload: newUser, timestamp });

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewShort, IShort } from '../../store/types';
-import { isAuthTokenExpired } from '../../store/actions/authActions';
+import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/shortActions';
 import { defaultDate } from '../../config/constants';
@@ -17,8 +17,9 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
+    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
-        isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
+        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
         create: (user: IAuthenticatedUser, newShort: INewShort, suppressTimeoutAlert: boolean) => dispatch(create(user, newShort, suppressTimeoutAlert)),
         read: (user: IAuthenticatedUser, shortId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, shortId, suppressTimeoutAlert)),
         readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
@@ -38,8 +39,8 @@ class ShortsPage extends Component<Props> {
     }
 
     render() {
-        const { authenticatedUser } = this.props;
-        if (this.props.isTokenExpired(authenticatedUser)) {
+        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         return (

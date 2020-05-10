@@ -123,6 +123,7 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
             };
         case authConstants.REFRESH_TOKEN_TIMEOUT:
+            // only the most recent attempt at the refresh token should be replayed
             nextState = {
                 ...state,
                 authErrorState: action.suppressTimeoutAlert
@@ -132,7 +133,7 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => !queuedAction.type.startsWith(authConstants.REFRESH_TOKEN)).concat(action),
             };
             updateLocalStorage(nextState);
             return nextState;

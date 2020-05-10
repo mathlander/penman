@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser } from '../../store/types';
-import { isAuthTokenExpired } from '../../store/actions/authActions';
+import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 
 const mapStateToProps = (state: IRootState) => {
@@ -13,8 +13,9 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
+    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
-        isTokenExpired: (user: IAuthenticatedUser) => isAuthTokenExpired(user),
+        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
     };
 };
 
@@ -25,8 +26,8 @@ type Props = PropsFromRedux;
 
 class Dashboard extends Component<Props> {
     render() {
-        const { authenticatedUser } = this.props;
-        if (this.props.isTokenExpired(authenticatedUser)) {
+        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         return (
