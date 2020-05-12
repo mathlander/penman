@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using AutoMapper;
 using PenmanApi.Dtos.Books;
+using PenmanApi.Dtos.Chapters;
+using PenmanApi.Dtos.Timelines;
 using PenmanApi.Services;
 using PenmanApi.Models;
 
@@ -68,7 +70,23 @@ namespace PenmanApi.Controllers
 
                 responseDto = new ReadAllBooksResponseDto
                 {
-                    Books = books.Select(b => _mapper.Map<ReadBookResponseDto>(b)).ToArray(),
+                    Books = books.Select(b =>
+                        {
+                            var bookResponseDto = _mapper.Map<ReadBookResponseDto>(b);
+                            bookResponseDto.Timeline = b.Timeline == null
+                                ? null
+                                : _mapper.Map<ReadTimelineResponseDto>(b.Timeline);
+                            bookResponseDto.Chapters = b.Chapter.Select(c =>
+                                {
+                                    var chapterResponseDto = _mapper.Map<ReadChapterResponseDto>(c);
+                                    chapterResponseDto.Timeline = c.Timeline == null
+                                        ? null
+                                        : _mapper.Map<ReadTimelineResponseDto>(c.Timeline);
+                                    return chapterResponseDto;
+                                }).ToList();
+                            return bookResponseDto;
+                        })
+                        .ToArray(),
                     LastReadAll = lastReadAllResponse,
                 };
             }
@@ -91,6 +109,17 @@ namespace PenmanApi.Controllers
             {
                 var bookEntity = _bookService.Read(bookDto.BookId, _httpContextAccessor.GetCurrentUserId());
                 responseDto = _mapper.Map<ReadBookResponseDto>(bookEntity);
+                responseDto.Timeline = bookEntity.Timeline == null
+                    ? null
+                    : _mapper.Map<ReadTimelineResponseDto>(bookEntity.Timeline);
+                responseDto.Chapters = bookEntity.Chapter.Select(c =>
+                    {
+                        var chapterResponseDto = _mapper.Map<ReadChapterResponseDto>(c);
+                        chapterResponseDto.Timeline = c.Timeline == null
+                            ? null
+                            : _mapper.Map<ReadTimelineResponseDto>(c.Timeline);
+                        return chapterResponseDto;
+                    }).ToList();
             }
             catch (Exception ex)
             {
@@ -115,6 +144,17 @@ namespace PenmanApi.Controllers
 
                 var bookEntity = _bookService.UpdateBook(bookDto.BookId, bookDto.AuthorId, bookDto.TimelineId, bookDto.Title);
                 responseDto = _mapper.Map<UpdateBookResponseDto>(bookEntity);
+                responseDto.Timeline = bookEntity.Timeline == null
+                    ? null
+                    : _mapper.Map<ReadTimelineResponseDto>(bookEntity.Timeline);
+                responseDto.Chapters = bookEntity.Chapter.Select(c =>
+                    {
+                        var chapterResponseDto = _mapper.Map<ReadChapterResponseDto>(c);
+                        chapterResponseDto.Timeline = c.Timeline == null
+                            ? null
+                            : _mapper.Map<ReadTimelineResponseDto>(c.Timeline);
+                        return chapterResponseDto;
+                    }).ToList();
             }
             catch (Exception ex)
             {

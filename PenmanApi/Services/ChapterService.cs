@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace PenmanApi.Services
         public Chapter Read(long chapterId, long authorId)
         {
             var chapter = _dbContext.Chapter
+                .Include(c => c.Timeline)
                 .Where(c => c.ChapterId == chapterId)
                 .FirstOrDefault();
 
@@ -42,6 +44,7 @@ namespace PenmanApi.Services
         public IEnumerable<Chapter> ReadAll(long authorId, long bookId, DateTime lastReadAll)
         {
             return _dbContext.Chapter
+                .Include(c => c.Timeline)
                 .Where(c => c.AuthorId == authorId && c.BookId == bookId && c.ModifiedDate >= lastReadAll)
                 .ToArray();
         }

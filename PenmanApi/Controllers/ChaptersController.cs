@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using AutoMapper;
 using PenmanApi.Dtos.Chapters;
+using PenmanApi.Dtos.Timelines;
 using PenmanApi.Services;
 using PenmanApi.Models;
 
@@ -68,7 +69,14 @@ namespace PenmanApi.Controllers
 
                 responseDto = new ReadAllChaptersResponseDto
                 {
-                    Chapters = chapters.Select(c => _mapper.Map<ReadChapterResponseDto>(c)).ToArray(),
+                    Chapters = chapters.Select(c => 
+                        {
+                            var chapterResponseDto = _mapper.Map<ReadChapterResponseDto>(c);
+                            chapterResponseDto.Timeline = c.Timeline == null
+                                ? null
+                                : _mapper.Map<ReadTimelineResponseDto>(c.Timeline);
+                            return chapterResponseDto;
+                        }).ToArray(),
                     LastReadAll = lastReadAllResponse,
                 };
             }
@@ -91,6 +99,9 @@ namespace PenmanApi.Controllers
             {
                 var chapterEntity = _chapterService.Read(chapterDto.ChapterId, _httpContextAccessor.GetCurrentUserId());
                 responseDto = _mapper.Map<ReadChapterResponseDto>(chapterEntity);
+                responseDto.Timeline = chapterEntity.Timeline == null
+                    ? null
+                    : _mapper.Map<ReadTimelineResponseDto>(chapterEntity.Timeline);
             }
             catch (Exception ex)
             {
@@ -115,6 +126,9 @@ namespace PenmanApi.Controllers
 
                 var chapterEntity = _chapterService.UpdateChapter(chapterDto.ChapterId, chapterDto.AuthorId, chapterDto.BookId, chapterDto.TimelineId, chapterDto.SortOrder, chapterDto.Title);
                 responseDto = _mapper.Map<UpdateChapterResponseDto>(chapterEntity);
+                responseDto.Timeline = chapterEntity.Timeline == null
+                    ? null
+                    : _mapper.Map<ReadTimelineResponseDto>(chapterEntity.Timeline);
             }
             catch (Exception ex)
             {

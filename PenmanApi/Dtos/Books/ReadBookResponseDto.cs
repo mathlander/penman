@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using PenmanApi.Dtos.Chapters;
+using PenmanApi.Dtos.Timelines;
 
 namespace PenmanApi.Dtos.Books
 {
@@ -11,6 +14,9 @@ namespace PenmanApi.Dtos.Books
         public string Title { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
+
+        public List<ReadChapterResponseDto> Chapters { get; set; }
+        public ReadTimelineResponseDto Timeline { get; set; }
 
         public override string ToString()
         {

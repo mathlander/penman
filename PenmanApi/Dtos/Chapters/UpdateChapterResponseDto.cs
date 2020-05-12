@@ -1,4 +1,5 @@
 using System;
+using PenmanApi.Dtos.Timelines;
 
 namespace PenmanApi.Dtos.Chapters
 {
@@ -13,6 +14,8 @@ namespace PenmanApi.Dtos.Chapters
         public string Title { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
+
+        public ReadTimelineResponseDto Timeline { get; set; }
 
         public override string ToString()
         {
