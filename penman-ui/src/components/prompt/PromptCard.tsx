@@ -55,8 +55,8 @@ class PromptCard extends Component<IPromptCardProps> {
     handleCancel = () => {
         this.setState({
             isEditing: false,
-            title: '',
-            body: '',
+            title: this.props.prompt.title,
+            body: this.props.prompt.body,
         });
     }
 

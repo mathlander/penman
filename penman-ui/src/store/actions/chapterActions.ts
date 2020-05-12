@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { apiConstants, chapterConstants, offlineConstants } from '../../config/constants';
-import { IAuthenticatedUser, IChapter, IChapterCollection, IChapterErrorState, INewChapter } from '../types';
+import { apiConstants, chapterConstants, timelineConstants, offlineConstants } from '../../config/constants';
+import { IAuthenticatedUser, IChapter, IChapterCollection, IChapterErrorState, INewChapter, ITimeline, mementoNoOp } from '../types';
 
 export const create = (authUser: IAuthenticatedUser, newChapter: INewChapter, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
@@ -69,6 +69,12 @@ export const readAll = (authUser: IAuthenticatedUser, bookId: number, suppressTi
                 readAllResponseDto.chapters.forEach((chapter, idx) => {
                     chapter.createdDate = new Date(response.data.chapters[idx].createdDate);
                     chapter.modifiedDate = new Date(response.data.chapters[idx].modifiedDate);
+                    // associated timelines are returned as part of the response object when not null
+                    // treat it as having been read from the timelines controller directly
+                    const timeline: ITimeline | null = response.data.chapters[idx].timeline;
+                    if (timeline !== null) {
+                        dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                    }
                 });
                 dispatch({ type: chapterConstants.READ_ALL_CHAPTERS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
@@ -114,6 +120,12 @@ export const read = (authUser: IAuthenticatedUser, chapterId: number, suppressTi
                 const readResponseDto: IChapter = response.data;
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+                // associated timelines are returned as part of the response object when not null
+                // treat it as having been read from the timelines controller directly
+                const timeline: ITimeline | null = response.data.timeline;
+                if (timeline !== null) {
+                    dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                }
                 dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
@@ -160,6 +172,12 @@ export const update = (authUser: IAuthenticatedUser, chapter: IChapter, suppress
                 const updateResponseDto: IChapter = response.data;
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+                // associated timelines are returned as part of the response object when not null
+                // treat it as having been read from the timelines controller directly
+                const timeline: ITimeline | null = response.data.timeline;
+                if (timeline !== null) {
+                    dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                }
                 dispatch({ type: chapterConstants.UPDATE_CHAPTER_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {

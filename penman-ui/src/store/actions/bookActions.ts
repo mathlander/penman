@@ -1,6 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { apiConstants, bookConstants, offlineConstants } from '../../config/constants';
-import { IAuthenticatedUser, IBook, IBookCollection, IBookErrorState, INewBook } from '../types';
+import { apiConstants, bookConstants, chapterConstants, timelineConstants, offlineConstants } from '../../config/constants';
+import { IAuthenticatedUser, IBook, IBookCollection, IBookErrorState, INewBook, IChapter, ITimeline } from '../types';
+
+const mementoNoOp = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {};
 
 export const create = (authUser: IAuthenticatedUser, newBook: INewBook, suppressTimeoutAlert = false) => {
     return (dispatch: any) => {
@@ -69,6 +71,16 @@ export const readAll = (authUser: IAuthenticatedUser, lastReadAll: Date, suppres
                 readAllResponseDto.books.forEach((book, idx) => {
                     book.createdDate = new Date(response.data.books[idx].createdDate);
                     book.modifiedDate = new Date(response.data.books[idx].modifiedDate);
+                    const chapters: IChapter[] | null = response.data.books[idx].chapters;
+                    if (chapters !== null) {
+                        chapters.forEach((chapter, chapIdx) => {
+                            const timeline: ITimeline | null = response.data.books[idx].chapters[chapIdx].timeline;
+                            if (timeline !== null) {
+                                dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                            }
+                            dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: chapter, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                        });
+                    }
                 });
                 dispatch({ type: bookConstants.READ_ALL_BOOKS_SUCCESS, payload: readAllResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
@@ -114,6 +126,16 @@ export const read = (authUser: IAuthenticatedUser, bookId: number, suppressTimeo
                 const readResponseDto: IBook = response.data;
                 readResponseDto.createdDate = new Date(response.data.createdDate);
                 readResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+                const chapters: IChapter[] | null = response.data.chapters;
+                if (chapters !== null) {
+                    chapters.forEach((chapter, chapIdx) => {
+                        const timeline: ITimeline | null = response.data.chapters[chapIdx].timeline;
+                        if (timeline !== null) {
+                            dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                        }
+                        dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: chapter, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                    });
+                }
                 dispatch({ type: bookConstants.READ_BOOK_SUCCESS, payload: readResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {
@@ -160,6 +182,16 @@ export const update = (authUser: IAuthenticatedUser, book: IBook, suppressTimeou
                 const updateResponseDto: IBook = response.data;
                 updateResponseDto.createdDate = new Date(response.data.createdDate);
                 updateResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+                const chapters: IChapter[] | null = response.data.chapters;
+                if (chapters !== null) {
+                    chapters.forEach((chapter, chapIdx) => {
+                        const timeline: ITimeline | null = response.data.chapters[chapIdx].timeline;
+                        if (timeline !== null) {
+                            dispatch({ type: timelineConstants.READ_TIMELINE_SUCCESS, payload: timeline, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                        }
+                        dispatch({ type: chapterConstants.READ_CHAPTER_SUCCESS, payload: chapter, timestamp, suppressTimeoutAlert, memento: mementoNoOp });
+                    });
+                }
                 dispatch({ type: bookConstants.UPDATE_BOOK_SUCCESS, payload: updateResponseDto, timestamp, suppressTimeoutAlert, memento });
             }).catch((err) => {
                 if (err.code === 'ECONNABORTED' || err.response === undefined) {

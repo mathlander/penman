@@ -83,6 +83,12 @@ export const bookConstants = {
     DELETE_BOOK_SUCCESS: 'DELETE_BOOK_SUCCESS',
     DELETE_BOOK_ERROR: 'DELETE_BOOK_ERROR',
     DELETE_BOOK_TIMEOUT: 'DELETE_BOOK_TIMEOUT',
+
+    SUB_ROUTES: {
+        NEW_BOOK: 'NEW_BOOK',
+        NEW_CHAPTER: 'NEW_CHAPTER',
+        NEW_TIMELINE: 'NEW_TIMELINE',
+    },
 };
 
 export const chapterConstants = {

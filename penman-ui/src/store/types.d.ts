@@ -133,7 +133,7 @@ export interface IOfflineReducerAction {
 export interface IBook {
     bookId: number;
     authorId: number;
-    timelineId?: number;
+    timelineId: number | null;
     title: string;
     createdDate: Date;
     modifiedDate: Date;
@@ -175,7 +175,7 @@ export interface IChapter {
     chapterId: number;
     bookId: number;
     authorId: number;
-    timelineId?: number;
+    timelineId: number | null;
     title: string;
     sortOrder: number;
     createdDate: Date;
@@ -393,14 +393,14 @@ export interface INewUser {
 
 export interface INewBook {
     authorId: number;
-    timelineId?: number;
+    timelineId: number | null;
     title: string;
 };
 
 export interface INewChapter {
     authorId: number;
     bookId: number;
-    timelineId?: number;
+    timelineId: number | null;
     title: string;
     sortOrder: number;
 };
@@ -433,4 +433,13 @@ export interface INewTimeline {
     eventStart: Date;
     eventEnd: Date;
 };
+
+
+
+/**
+ * No-op
+ */
+
+export const mementoNoOp = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {};
+
 
