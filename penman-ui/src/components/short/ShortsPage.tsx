@@ -3,14 +3,16 @@ import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewShort, IShort } from '../../store/types';
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
-import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/shortActions';
 import { defaultDate } from '../../config/constants';
+import ShortCard from './ShortCard';
+import NewShortCard from './NewShortCard';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         shorts: state.short.shorts,
+        shortsCount: Object.values(state.short.shorts).length,
         lastReadAll: state.short.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
     };
@@ -44,22 +46,21 @@ class ShortsPage extends Component<Props> {
             push('/signin');
         }
         return (
-            <div className="dashboard container">
-                <div className="dashboard-work-area stories container grey-text text-darken-1 col s12 m6">
-                    {/** Extract cards to component */}
-                    <div className="card-panel story white row">
-                        <img src={bookImg} alt="A book" />
-                        <div className="story-details">
-                            <div className="story-title">Some Title</div>
-                            <div className="story-contents">The makings of a story.</div>
-                        </div>
-                        <div className="story-delete secondary-content">
-                            <i className="material-icons">delete_outline</i>
-                        </div>
+            <div className="books container">
+                <div className="books-work-area container grey-text text-darken-1 col s12 m6">
+                    <NewShortCard />
+                    <div className="books">
+                        {Object.values(this.props.shorts).reverse().map(short =>
+                            <ShortCard
+                                key={`shortId:${short.shortId}`}
+                                short={short}
+                                user={authenticatedUser}
+                                isOffline={isOffline}
+                                update={this.props.update}
+                                deleteEntity={this.props.deleteEntity}
+                            />
+                        )}
                     </div>
-                </div>
-                <div className="dashboard-notifications-area col s12 m5 offset-m1">
-                    <span>Example notification</span>
                 </div>
             </div>
         );

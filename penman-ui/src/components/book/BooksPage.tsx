@@ -12,6 +12,7 @@ const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         books: state.book.books,
+        booksCount: Object.values(state.book.books).length,
         lastReadAll: state.book.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
         timelines: state.timeline.timelines,
