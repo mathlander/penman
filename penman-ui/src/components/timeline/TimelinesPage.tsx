@@ -5,14 +5,18 @@ import { IRootState, IAuthenticatedUser, INewTimeline, ITimeline } from '../../s
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import bookImg from '../../img/book.jpg';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/timelineActions';
-import { defaultDate } from '../../config/constants';
+import { defaultDate, timelineConstants } from '../../config/constants';
 
 const mapStateToProps = (state: IRootState) => {
     return {
         authenticatedUser: state.auth.authenticatedUser,
         timelines: state.timeline.timelines,
+        timelinesCount: Object.values(state.timeline.timelines).length,
         lastReadAll: state.timeline.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
+        isLoading: !state.offline.isOffline
+            && state.timeline.pendingActions.length > 0
+            && state.timeline.pendingActions[0].type === timelineConstants.READ_ALL_TIMELINES,
     };
 };
 
@@ -40,6 +44,7 @@ class TimelinesPage extends Component<Props> {
 
     render() {
         const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        // const loaderDisplayStyle = (this.props.isLoading && this.props.timelinesCount === 0 ? 'block' : 'none');
         if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }

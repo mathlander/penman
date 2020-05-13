@@ -4,7 +4,7 @@ import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewBook, IBook } from '../../store/types';
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/bookActions';
-import { defaultDate } from '../../config/constants';
+import { defaultDate, bookConstants } from '../../config/constants';
 import NewBookCard from './NewBookCard';
 import BookCard from './BookCard';
 
@@ -15,6 +15,9 @@ const mapStateToProps = (state: IRootState) => {
         booksCount: Object.values(state.book.books).length,
         lastReadAll: state.book.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
+        isLoading: !state.offline.isOffline
+            && state.book.pendingActions.length > 0
+            && state.book.pendingActions[0].type === bookConstants.READ_ALL_BOOKS,
         timelines: state.timeline.timelines,
         chapters: state.chapter.chapters,
     };
@@ -44,6 +47,7 @@ class BooksPage extends Component<Props> {
 
     render() {
         const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        const loaderDisplayStyle = (this.props.isLoading && this.props.booksCount === 0 ? 'block' : 'none');
         if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
@@ -53,6 +57,13 @@ class BooksPage extends Component<Props> {
                 <div className="books-work-area container grey-text text-darken-1 col s12 m6">
                     <NewBookCard />
                     <div className="books">
+                        <div className="blue-text" style={{display: loaderDisplayStyle}}>
+                            <div className="preloader-wrapper big active">
+                                <div className="spinner-layer"><div className="circle" /></div>
+                                <div className="gap-patch"><div className="circle" /></div>
+                                <div className="circle-clipper right"><div className="circle"></div></div>
+                            </div>
+                        </div>
                         {Object.values(this.props.books).reverse().map(book =>
                             <BookCard
                                 key={`bookId:${book.bookId}`}
