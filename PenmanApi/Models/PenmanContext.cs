@@ -164,6 +164,10 @@ namespace PenmanApi.Models
                     .HasColumnName("title")
                     .HasMaxLength(50);
 
+                entity.Property(e => e.Body)
+                    .IsRequired()
+                    .HasColumnName("body");
+
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.Chapter)
                     .HasForeignKey(d => d.AuthorId)

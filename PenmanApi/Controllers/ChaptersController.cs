@@ -124,7 +124,14 @@ namespace PenmanApi.Controllers
                 if (_httpContextAccessor.GetCurrentUserId() != chapterDto.AuthorId)
                     throw new UnauthorizedAccessException("You are not authorized to update the specified chapter.");
 
-                var chapterEntity = _chapterService.UpdateChapter(chapterDto.ChapterId, chapterDto.AuthorId, chapterDto.BookId, chapterDto.TimelineId, chapterDto.SortOrder, chapterDto.Title);
+                var chapterEntity = _chapterService.UpdateChapter(
+                    chapterDto.ChapterId,
+                    chapterDto.AuthorId,
+                    chapterDto.BookId,
+                    chapterDto.TimelineId,
+                    chapterDto.SortOrder,
+                    chapterDto.Title,
+                    chapterDto.Body);
                 responseDto = _mapper.Map<UpdateChapterResponseDto>(chapterEntity);
                 responseDto.Timeline = chapterEntity.Timeline == null
                     ? null

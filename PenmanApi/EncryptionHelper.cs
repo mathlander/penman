@@ -7,7 +7,13 @@ namespace PenmanApi
 {
     public static class EncryptionHelper
     {
-        private static readonly Aes _aes = Aes.Create();
+        private static readonly Aes _aes;
+
+        static EncryptionHelper()
+        {
+            _aes = Aes.Create();
+            _aes.Padding = PaddingMode.None;
+        }
 
         public static byte[] EncryptStringToBytes(string plainText, byte[] key, byte[] initialVector)
         {

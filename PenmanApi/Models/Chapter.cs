@@ -11,6 +11,7 @@ namespace PenmanApi.Models
         public long? TimelineId { get; set; }
         public int SortOrder { get; set; }
         public string Title { get; set; }
+        public string Body { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
 
