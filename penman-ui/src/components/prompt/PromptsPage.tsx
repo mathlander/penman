@@ -6,7 +6,7 @@ import { isAuthTokenExpired, refreshToken } from '../../store/actions/authAction
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/promptActions';
 import NewPromptCard from './NewPromptCard';
 import PromptCard from './PromptCard';
-import { defaultDate } from '../../config/constants';
+import { defaultDate, promptConstants } from '../../config/constants';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -15,6 +15,9 @@ const mapStateToProps = (state: IRootState) => {
         promptsCount: Object.values(state.prompt.prompts).length,
         lastReadAll: state.prompt.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
+        isLoading: !state.offline.isOffline
+            && state.prompt.pendingActions.length > 0
+            && state.prompt.pendingActions[0].type === promptConstants.READ_ALL_PROMPTS,
     };
 };
 
@@ -42,6 +45,7 @@ class PromptsPage extends Component<Props> {
 
     render() {
         const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        const loaderDisplayStyle = (this.props.isLoading && this.props.promptsCount === 0 ? 'block' : 'none');
         if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
@@ -50,6 +54,13 @@ class PromptsPage extends Component<Props> {
                 <div className="prompts-work-area stories container grey-text text-darken-1 col s12 m6">
                     <NewPromptCard />
                     <div className="prompts">
+                        <div className="blue-text" style={{display: loaderDisplayStyle}}>
+                            <div className="preloader-wrapper big active">
+                                <div className="spinner-layer"><div className="circle" /></div>
+                                <div className="gap-patch"><div className="circle" /></div>
+                                <div className="circle-clipper right"><div className="circle"></div></div>
+                            </div>
+                        </div>
                         {Object.values(this.props.prompts).reverse().map(prompt =>
                             <PromptCard
                                 key={`promptId:${prompt.promptId}`}

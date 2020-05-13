@@ -4,7 +4,7 @@ import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser, INewShort, IShort } from '../../store/types';
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/shortActions';
-import { defaultDate } from '../../config/constants';
+import { defaultDate, shortConstants } from '../../config/constants';
 import ShortCard from './ShortCard';
 import NewShortCard from './NewShortCard';
 
@@ -15,6 +15,9 @@ const mapStateToProps = (state: IRootState) => {
         shortsCount: Object.values(state.short.shorts).length,
         lastReadAll: state.short.lastReadAll || defaultDate,
         isOffline: state.offline.isOffline,
+        isLoading: !state.offline.isOffline
+            && state.short.pendingActions.length > 0
+            && state.short.pendingActions[0].type === shortConstants.READ_ALL_SHORTS,
     };
 };
 
@@ -42,6 +45,7 @@ class ShortsPage extends Component<Props> {
 
     render() {
         const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        const loaderDisplayStyle = (this.props.isLoading && this.props.shortsCount === 0 ? 'block' : 'none');
         if (isTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
@@ -50,6 +54,13 @@ class ShortsPage extends Component<Props> {
                 <div className="books-work-area container grey-text text-darken-1 col s12 m6">
                     <NewShortCard />
                     <div className="books">
+                        <div className="blue-text" style={{display: loaderDisplayStyle}}>
+                            <div className="preloader-wrapper big active">
+                                <div className="spinner-layer"><div className="circle" /></div>
+                                <div className="gap-patch"><div className="circle" /></div>
+                                <div className="circle-clipper right"><div className="circle"></div></div>
+                            </div>
+                        </div>
                         {Object.values(this.props.shorts).reverse().map(short =>
                             <ShortCard
                                 key={`shortId:${short.shortId}`}
