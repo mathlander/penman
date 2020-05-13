@@ -177,6 +177,7 @@ export interface IChapter {
     authorId: number;
     timelineId: number | null;
     title: string;
+    body: string;
     sortOrder: number;
     createdDate: Date;
     modifiedDate: Date;
@@ -402,6 +403,7 @@ export interface INewChapter {
     bookId: number;
     timelineId: number | null;
     title: string;
+    body: string;
     sortOrder: number;
 };
 
