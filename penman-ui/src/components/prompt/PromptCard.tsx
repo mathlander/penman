@@ -105,36 +105,33 @@ class PromptCard extends Component<IPromptCardProps> {
             <div className="prompt card-panel white row">
                 <div className="card">
                     <div className={`card-content tooltip-prompt-cc-${promptId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
-                        {this.state.isEditing
-                            ? (
-                                <form>
-                                    <div className="input-field">
-                                        <input id={`prompt-form-title-${promptId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required autoFocus />
-                                        <label htmlFor={`prompt-form-title-${promptId}`}>Title</label>
-                                    </div>
-                                    <div className="input-field">
-                                        <textarea id={`prompt-form-body-${promptId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required autoFocus />
-                                        <label htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
-                                    </div>
-                                    <div className="input-field center">
-                                        <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
-                                        <button className="btn-small" aria-label="Update" onClick={this.handleUpdate}>Update</button>
-                                    </div>
-                                </form>
-                            )
-                            : (
-                                <>
-                                    <span className="card-title">{title}</span>
-                                    {
-                                        body.split(/\r?\n/)
-                                            .map((paragraphContent, idx) => {
-                                                return !paragraphContent
-                                                    ? (<br key={`prompt-${promptId}-linebreak-${idx}`} />)
-                                                    : (<p key={`prompt-${promptId}-paragraph-${idx}`}>{paragraphContent}</p>);
-                                            })
-                                    }
-                                </>
-                            )}
+                        <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
+                            <form>
+                                <div className="input-field">
+                                    <input id={`prompt-form-title-${promptId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required autoFocus />
+                                    <label htmlFor={`prompt-form-title-${promptId}`}>Title</label>
+                                </div>
+                                <div className="input-field">
+                                    <textarea id={`prompt-form-body-${promptId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required autoFocus />
+                                    <label htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
+                                </div>
+                                <div className="input-field center">
+                                    <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
+                                    <button className="btn-small" aria-label="Update" onClick={this.handleUpdate}>Update</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div style={{ display: (this.state.isEditing ? 'none' : 'block') }}>
+                            <span className="card-title">{title}</span>
+                            {
+                                body.split(/\r?\n/)
+                                    .map((paragraphContent, idx) => {
+                                        return !paragraphContent
+                                            ? (<br key={`prompt-${promptId}-linebreak-${idx}`} />)
+                                            : (<p key={`prompt-${promptId}-paragraph-${idx}`}>{paragraphContent}</p>);
+                                    })
+                            }
+                        </div>
                     </div>
                     <div className="card-action">
                         <div className="row">
