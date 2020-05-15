@@ -7,6 +7,7 @@
   <ItemGroup>
     <None Include="appsettings.Development.json" CopyToPublishDirectory="PreserveNewest" />
     <None Include="appsettings.json" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="web.config" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

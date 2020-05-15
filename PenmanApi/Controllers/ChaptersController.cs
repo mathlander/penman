@@ -13,7 +13,7 @@ namespace PenmanApi.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ChaptersController : ControllerBase
     {
         private readonly IMapper _mapper;

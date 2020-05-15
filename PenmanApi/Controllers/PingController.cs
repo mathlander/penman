@@ -20,7 +20,7 @@ namespace PenmanApi.Controllers
 {
     [AllowAnonymous]
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PingController : ControllerBase
     {
         [HttpGet]

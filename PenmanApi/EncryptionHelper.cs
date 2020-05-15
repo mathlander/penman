@@ -12,7 +12,7 @@ namespace PenmanApi
         static EncryptionHelper()
         {
             _aes = Aes.Create();
-            _aes.Padding = PaddingMode.None;
+            _aes.Padding = PaddingMode.PKCS7;
         }
 
         public static byte[] EncryptStringToBytes(string plainText, byte[] key, byte[] initialVector)

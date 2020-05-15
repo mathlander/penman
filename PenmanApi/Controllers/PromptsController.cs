@@ -12,7 +12,7 @@ namespace PenmanApi.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PromptsController : ControllerBase
     {
         private readonly IMapper _mapper;

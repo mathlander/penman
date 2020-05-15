@@ -14,16 +14,16 @@ export const defaultDate = new Date(1970, 0, 0);
 
 export const apiConstants = {
     baseUrl: baseUrl,
-    usersController: `${baseUrl}/users`,
-    leadsController: `${baseUrl}/leads`,
-    booksController: `${baseUrl}/books`,
-    chaptersController: `${baseUrl}/chapters`,
-    personificationsController: `${baseUrl}/personifications`,
-    promptsController: `${baseUrl}/prompts`,
-    relationshipsController: `${baseUrl}/relationships`,
-    shortsController: `${baseUrl}/shorts`,
-    timelinesController: `${baseUrl}/timelines`,
-    ping: `${baseUrl}/ping`,
+    usersController: `${baseUrl}/api/users`,
+    leadsController: `${baseUrl}/api/leads`,
+    booksController: `${baseUrl}/api/books`,
+    chaptersController: `${baseUrl}/api/chapters`,
+    personificationsController: `${baseUrl}/api/personifications`,
+    promptsController: `${baseUrl}/api/prompts`,
+    relationshipsController: `${baseUrl}/api/relationships`,
+    shortsController: `${baseUrl}/api/shorts`,
+    timelinesController: `${baseUrl}/api/timelines`,
+    ping: `${baseUrl}/api/ping`,
     timeout: 5 * 1000,
 };
 
