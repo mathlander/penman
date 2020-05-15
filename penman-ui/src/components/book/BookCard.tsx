@@ -15,6 +15,7 @@ export interface IBookCardProps {
 
 interface IBookCardState {
     toolTipInstances: M.Tooltip[];
+    focusableElements: HTMLInputElement[];
     title: string;
     chapters: IChapter[];
     timelineId: number | null;
@@ -25,6 +26,7 @@ interface IBookCardState {
 class BookCard extends Component<IBookCardProps> {
     state: IBookCardState = {
         toolTipInstances: [],
+        focusableElements: [],
         title: '',
         chapters: [],
         timelineId: null,
@@ -42,8 +44,16 @@ class BookCard extends Component<IBookCardProps> {
                 position: 'right',
             }
         );
-        this.setState({
+        // put them in reverse order, with the last element in the collection representing the one that should be focused on first
+        const bookId = this.props.book.bookId;
+        const focusableElementsAsWildcards: any[] = [
+            document.getElementById(`book-form-title-${bookId}`),
+        ];
+        const focusableElements: HTMLInputElement[] = [];
+        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
+         this.setState({
             toolTipInstances,
+            focusableElements,
             title: this.props.book.title,
             timelineId: this.props.book.timelineId,
         });
@@ -51,6 +61,12 @@ class BookCard extends Component<IBookCardProps> {
 
     componentWillUnmount() {
         this.state.toolTipInstances.forEach((tooltip: M.Tooltip) => tooltip.destroy());
+    }
+
+    componentDidUpdate() {
+        if (this.state.isEditing) {
+            this.state.focusableElements.forEach(inputElement => inputElement.focus());
+        }
     }
 
     handleDelete = (e: any) => {
@@ -109,26 +125,23 @@ class BookCard extends Component<IBookCardProps> {
         return (
             <div className="book card-panel white row">
                 <div className="card">
-                    <div className={`card-content tooltip-book-cc-${bookId}`} data-tooltip={ccTooltip}>
-                        {this.state.isEditing
-                                ? (
-                                    <form>
-                                        <div className="input-field">
-                                            <input id={`book-form-title-${bookId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required autoFocus />
-                                            <label htmlFor={`book-form-title-${bookId}`}>Title</label>
-                                        </div>
-                                        <div className="input-field center">
-                                            <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
-                                            <button className="btn-small" aria-label="Update" onClick={this.handleUpdate}>Update</button>
-                                        </div>
-                                    </form>
-                                )
-                                : (
-                                    <>
-                                        <span className="card-title">{title}</span>
-                                    </>
-                                )}
-                        <div className="inline-editable" onClick={this.handleInlineEdit}>
+                    <div className={`card-content tooltip-book-cc-${bookId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
+                        <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
+                            <form>
+                                <div className="input-field">
+                                    <input id={`book-form-title-${bookId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required />
+                                    <label htmlFor={`book-form-title-${bookId}`}>Title</label>
+                                </div>
+                                <div className="input-field center">
+                                    <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
+                                    <button className="btn-small" aria-label="Update" onClick={this.handleUpdate}>Update</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div style={{ display: (this.state.isEditing ? 'none' : 'block') }}>
+                            <span className="card-title">{title}</span>
+                        </div>
+                        <div className="">
                             <ul className="chapters">
                                 {this.props.chapters.map(chapter => {
                                     return (
