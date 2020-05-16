@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 import { push } from 'connected-react-router';
 import { IRootState, IAuthenticatedUser } from '../../store/types';
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
-import bookImg from '../../img/book.jpg';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -32,21 +32,29 @@ class Dashboard extends Component<Props> {
         }
         return (
             <div className="dashboard container">
-                <div className="dashboard-work-area stories container grey-text text-darken-1 col s12 m6">
-                    {/** Extract cards to component */}
-                    <div className="card-panel story white row">
-                        <img src={bookImg} alt="A book" />
-                        <div className="story-details">
-                            <div className="story-title">Some Title</div>
-                            <div className="story-contents">The makings of a story.</div>
+                <div className="dashboard-work-area container grey-text text-darken-1 col s12 m6">
+                    <div className="dashboard card-panel white row">
+                        <div className="card">
+                            <div className="card-content">
+                                <ul className="collection with-header">
+                                    <li className="collection-header"><h4>Get Started</h4></li>
+                                    <li className="collection-item"><NavLink to="/books" className="waves-effect left-align">New Novel</NavLink></li>
+                                    <li className="collection-item"><NavLink to="/shorts" className="waves-effect left-align">New Short</NavLink></li>
+                                    <li className="collection-item"><NavLink to="/prompts" className="waves-effect left-align">New Prompt</NavLink></li>
+                                    <li className="collection-item"><NavLink to="/personifications" className="waves-effect left-align">New Character</NavLink></li>
+                                    <li className="collection-item"><NavLink to="/timelines" className="waves-effect left-align">New Timeline</NavLink></li>
+                                </ul>
+                            </div>
                         </div>
-                        <div className="story-delete secondary-content">
-                            <i className="material-icons">delete_outline</i>
+
+                        <div className="card">
+                            <div className="card-content">
+                                <span className="card-title">Recent</span> <br />
+                                {/* <span className="new-novel">New Novel</span> <br />
+                                <span className="new-short">New Short</span> <br /> */}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="dashboard-notifications-area col s12 m5 offset-m1">
-                    <span>Example notification</span>
                 </div>
             </div>
         );

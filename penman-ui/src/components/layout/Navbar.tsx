@@ -37,6 +37,10 @@ class Navbar extends Component<Props> {
         this.setState({ sideNavMenus });
     }
 
+    componentWillUnmount() {
+        this.state.sideNavMenus?.forEach(sideNavMenu => sideNavMenu.destroy());
+    }
+
     componentDidUpdate() {
         this.state.sideNavMenus?.forEach(sideNavMenu => {
             sideNavMenu.close();
