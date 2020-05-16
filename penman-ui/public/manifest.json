@@ -2,6 +2,7 @@
   "name": "Penman",
   "short_name": "Penman",
   "start_url": ".",
+  "description": "A tool to assist with managing character back stories, timelines, and collaborative authorship of novels and short stories.",
   "display": "standalone",
   "theme_color": "#FFE9D2",
   "background_color": "#FFE1C4",
@@ -13,12 +14,12 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "android-chrome-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
+      "src": "android-chrome-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
