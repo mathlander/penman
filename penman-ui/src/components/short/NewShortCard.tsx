@@ -28,6 +28,7 @@ interface INewShortCardState {
     eventEndPicker: M.Datepicker | null;
     eventStartInputElement: HTMLInputElement | null;
     eventEndInputElement: HTMLInputElement | null;
+    resizableElements: Element[];
     body: string;
     title: string;
     eventStart: Date;
@@ -40,6 +41,7 @@ class NewShortCard extends Component<Props> {
         eventEndPicker: null,
         eventStartInputElement: null,
         eventEndInputElement: null,
+        resizableElements: [],
         title: '',
         body: '',
         eventStart: now,
@@ -62,11 +64,15 @@ class NewShortCard extends Component<Props> {
         }).shift() || null;
         const eventStartInputElement = document.getElementById('event-start');
         const eventEndInputElement = document.getElementById('event-end');
+        const resizableElements: Element[] = [
+            document.getElementById(`body`) || document.createElement('textarea'),
+        ];
         this.setState({
             eventStartInputElement,
             eventEndInputElement,
             eventStartPicker,
             eventEndPicker,
+            resizableElements,
             eventStart: now,
             eventEnd: now,
         });
@@ -75,6 +81,12 @@ class NewShortCard extends Component<Props> {
     componentWillUnmount() {
         this.state.eventStartPicker?.destroy();
         this.state.eventEndPicker?.destroy();
+    }
+
+    componentDidUpdate() {
+        if (!this.state.body.length) {
+            this.state.resizableElements.forEach(textArea => M.textareaAutoResize(textArea));
+        }
     }
 
     handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -22,10 +22,32 @@ const localConnector = connect(mapStateToProps, mapDispatchToProps);
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
 
+interface INewPromptCardState {
+    resizableElements: Element[];
+    body: string;
+    title: string;
+};
+
 class NewPromptCard extends Component<Props> {
-    state = {
+    state: INewPromptCardState = {
+        resizableElements: [],
         title: '',
         body: '',
+    }
+
+    componentDidMount() {
+        const resizableElements: Element[] = [
+            document.getElementById(`body`) || document.createElement('textarea'),
+        ];
+        this.setState({
+            resizableElements,
+        });
+    }
+
+    componentDidUpdate() {
+        if (!this.state.body.length) {
+            this.state.resizableElements.forEach(textArea => M.textareaAutoResize(textArea));
+        }
     }
 
     handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
