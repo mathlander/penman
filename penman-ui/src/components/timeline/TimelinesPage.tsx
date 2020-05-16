@@ -6,7 +6,7 @@ import { isAuthTokenExpired, refreshToken } from '../../store/actions/authAction
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/timelineActions';
 import { defaultDate, timelineConstants } from '../../config/constants';
 import NewTimelineCard from './NewTimelineCard';
-// import TimelineCard from './TimelineCard';
+import TimelineCard from './TimelineCard';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -61,7 +61,7 @@ class TimelinesPage extends Component<Props> {
                                 <div className="circle-clipper right"><div className="circle"></div></div>
                             </div>
                         </div>
-                        {/* {Object.values(this.props.timelines).reverse().map(timeline =>
+                        {Object.values(this.props.timelines).reverse().map(timeline =>
                             <TimelineCard
                                 key={`timelineId:${timeline.timelineId}`}
                                 timeline={timeline}
@@ -70,7 +70,7 @@ class TimelinesPage extends Component<Props> {
                                 update={this.props.update}
                                 deleteEntity={this.props.deleteEntity}
                             />
-                        )} */}
+                        )}
                     </div>
                 </div>
             </div>
