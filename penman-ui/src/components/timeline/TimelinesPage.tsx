@@ -85,7 +85,7 @@ class TimelinesPage extends Component<Props> {
         return (
             <div className="timelines container">
                 {this.props.scrollspyId && (
-                    <a href={`#${this.props.scrollspyId}`} ref={this.anchorRef} style={{ display: 'none' }}>Jump to recent item</a>
+                    <a href={`#${this.props.scrollspyId}`} ref={this.anchorRef} style={{ display: 'none' }} aria-hidden={true}>Jump to recent item</a>
                 )}
                 <div className="timelines-work-area stories container grey-text text-darken-1 col s12 m6">
                     <NewTimelineCard />

@@ -85,7 +85,7 @@ class PersonificationsPage extends Component<Props> {
         return (
             <div className="personifications container">
                 {this.props.scrollspyId && (
-                    <a href={`#${this.props.scrollspyId}`} ref={this.anchorRef} style={{ display: 'none' }}>Jump to recent item</a>
+                    <a href={`#${this.props.scrollspyId}`} ref={this.anchorRef} style={{ display: 'none' }} aria-hidden={true}>Jump to recent item</a>
                 )}
                 <div className="personifications-work-area stories container grey-text text-darken-1 col s12 m6">
                     <NewPersonificationCard />
