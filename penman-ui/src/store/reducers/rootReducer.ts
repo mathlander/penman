@@ -3,6 +3,7 @@ import { connectRouter } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
 import authReducer from './authReducer';
 import welcomeReducer from './welcomeReducer';
+import dashboardReducer from './dashboardReducer';
 import offlineReducer from './offlineReducer';
 import bookReducer from './bookReducer';
 import chapterReducer from './chapterReducer';
@@ -17,6 +18,7 @@ const rootReducer = combineReducers({
     router: connectRouter(history),
     auth: authReducer,
     welcome: welcomeReducer,
+    dashboard: dashboardReducer,
     offline: offlineReducer,
     book: bookReducer,
     chapter: chapterReducer,

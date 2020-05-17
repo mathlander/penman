@@ -55,6 +55,11 @@ export const welcomeConstants = {
     EMAIL_ERROR: 'EMAIL_ERROR',
 };
 
+export const dashboardConstants = {
+    VISIT_RECENT_ITEM: 'VISIT_RECENT_ITEM',
+    VISIT_RECENT_ITEM_CLEAR: 'VISIT_RECENT_ITEM_CLEAR',
+};
+
 export const bookConstants = {
     BOOK_LOCAL_STORAGE_KEY: 'BOOK_LOCAL_STORAGE',
     BOOK_CLEAR_ERROR: 'BOOK_CLEAR_ERROR',

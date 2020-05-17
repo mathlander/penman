@@ -163,7 +163,7 @@ class ShortCard extends Component<IShortCardProps> {
         `;
         return (
             <div className="short card-panel white row">
-                <div className="card">
+                <div id={`short-card-${shortId}`} className="card scrollspy">
                     <div className={`card-content tooltip-short-cc-${shortId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
                         <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
                             <form>

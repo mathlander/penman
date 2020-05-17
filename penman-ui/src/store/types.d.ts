@@ -9,6 +9,7 @@ export interface IRootState {
     router: RouterState<History<HistoryLocationState>>;
     auth: IAuthenticationState;
     welcome: IWelcomeState;
+    dashboard: IDashboardState;
     offline: IOfflineState;
     book: IBookState;
     chapter: IChapterState;
@@ -122,6 +123,23 @@ export interface IOfflineState {
 
 export interface IOfflineReducerAction {
     type: string;
+};
+
+
+
+/**
+ * DashboardReducer
+ */
+
+export interface IDashboardState {
+    scrollspyId: string | null;
+};
+
+export interface IDashboardReducerAction {
+    timestamp: number;
+    suppressTimeoutAlert: boolean;
+    type: string;
+    payload?: any;
 };
 
 

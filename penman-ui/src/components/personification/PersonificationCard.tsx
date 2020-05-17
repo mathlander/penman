@@ -150,7 +150,7 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
         `;
         return (
             <div className="personification card-panel white row">
-                <div className="card">
+                <div id={`personification-card-${personificationId}`} className="card scrollspy">
                     <div className={`card-content tooltip-personification-cc-${personificationId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
                         <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
                             <form>

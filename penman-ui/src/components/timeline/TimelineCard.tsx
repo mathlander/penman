@@ -143,7 +143,7 @@ class TimelineCard extends Component<ITimelineCardProps> {
         `;
         return (
             <div className="timeline card-panel white row">
-                <div className="card">
+                <div id={`timeline-card-${timelineId}`} className="card scrollspy">
                     <div className={`card-content tooltip-timeline-cc-${timelineId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
                         <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
                             <form>

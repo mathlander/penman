@@ -127,7 +127,7 @@ class PromptCard extends Component<IPromptCardProps> {
         `;
         return (
             <div className="prompt card-panel white row">
-                <div className="card">
+                <div id={`prompt-card-${promptId}`} className="card scrollspy">
                     <div className={`card-content tooltip-prompt-cc-${promptId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
                         <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
                             <form>

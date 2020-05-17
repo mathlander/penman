@@ -124,7 +124,7 @@ class BookCard extends Component<IBookCardProps> {
         `;
         return (
             <div className="book card-panel white row">
-                <div className="card">
+                <div id={`book-card-${bookId}`} className="card scrollspy">
                     <div className={`card-content tooltip-book-cc-${bookId} inline-editable`} data-tooltip={ccTooltip} onClick={this.handleInlineEdit}>
                         <div style={{ display: (this.state.isEditing ? 'block' : 'none') }}>
                             <form>
