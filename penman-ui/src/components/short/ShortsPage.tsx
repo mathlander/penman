@@ -83,13 +83,13 @@ class ShortsPage extends Component<Props> {
             push('/signin');
         }
         return (
-            <div className="books container">
+            <div className="shorts container">
                 {this.props.scrollspyId && (
                     <a href={`#${this.props.scrollspyId}`} ref={this.anchorRef} style={{ display: 'none' }} aria-hidden={true}>Jump to recent item</a>
                 )}
-                <div className="books-work-area container grey-text text-darken-1 col s12 m6">
+                <div className="shorts-work-area container grey-text text-darken-1 col s12 m6">
                     <NewShortCard />
-                    <div className="books">
+                    <div className="shorts">
                         <div className="blue-text" style={{display: loaderDisplayStyle}}>
                             <div className="preloader-wrapper big active">
                                 <div className="spinner-layer"><div className="circle" /></div>
