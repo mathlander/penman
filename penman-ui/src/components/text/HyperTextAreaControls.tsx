@@ -104,34 +104,34 @@ class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
                 <div className="row" />
                 <div id={`hta-control-row-1-${now}`} className="row">
                     <div className="col s12">
-                        <a href="#!" aria-label="Undo" className={`btn-small col-content ${this.props.isUndoDisabled && 'disabled'}`} onClick={this.props.handleUndo}>
+                        <a href="#!" aria-label="Undo" className={`waves-effect btn-small col-content ${this.props.isUndoDisabled ? 'disabled' : 'teal lighten-2'}`} onClick={this.props.handleUndo}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Undo (Ctrl+Z)">undo</i>
                         </a>
-                        <a href="#!" aria-label="Redo" className={`btn-small col-content ${this.props.isRedoDisabled && 'disabled'}`} onClick={this.props.handleRedo}>
+                        <a href="#!" aria-label="Redo" className={`waves-effect btn-small col-content ${this.props.isRedoDisabled ? 'disabled' : 'teal lighten-2'}`} onClick={this.props.handleRedo}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Redo (Ctrl+Y)">redo</i>
                         </a>
                         &nbsp;
-                        <a href="#!" aria-label="Print" className={`btn-small col-content`} onClick={this.props.handlePrint}>
+                        <a href="#!" aria-label="Print" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handlePrint}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Print (Ctrl+P)">print</i>
                         </a>
-                        <a href="#!" aria-label="Spellcheck" className={`btn-small col-content`} onClick={this.props.handleSpellCheck}>
+                        <a href="#!" aria-label="Spellcheck" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleSpellCheck}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Check spelling (Ctrl+Alt+X)">spellcheck</i>
                         </a>
                         &nbsp;
-                        <a href="#!" aria-label="Bold" className={`btn-small col-content`} onClick={this.props.handleBold}>
+                        <a href="#!" aria-label="Bold" className={`waves-effect btn-small col-content teal ${this.state.isEmboldened ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleBold}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Bold (Ctrl+B)">format_bold</i>
                         </a>
-                        <a href="#!" aria-label="Italics" className={`btn-small col-content`} onClick={this.props.handleItalics}>
+                        <a href="#!" aria-label="Italics" className={`waves-effect btn-small col-content teal ${this.state.isItalicized ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleItalics}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Italic (Ctrl+I)">format_italic</i>
                         </a>
-                        <a href="#!" aria-label="Underline" className={`btn-small col-content`} onClick={this.props.handleUnderline}>
+                        <a href="#!" aria-label="Underline" className={`waves-effect btn-small col-content teal ${this.state.isUnderlined ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleUnderline}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Underline (Ctrl+U)">format_underlined</i>
                         </a>
-                        <a href="#!" aria-label="Highlight" className={`btn-small col-content`} onClick={this.props.handleHighlight}>
+                        <a href="#!" aria-label="Highlight" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleHighlight}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Highlight">{this.state.isHighlighted ? 'highlight_off' : 'highlight'}</i>
                         </a>
                         &nbsp;
-                        <a href="#!" aria-label="Clear formatting" className={`btn-small col-content`} onClick={this.props.handleClearFormatting}>
+                        <a href="#!" aria-label="Clear formatting" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleClearFormatting}>
                             <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip={`Clear formatting (Ctrl+\\)`}>format_clear</i>
                         </a>
                     </div>
