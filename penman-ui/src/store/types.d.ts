@@ -399,6 +399,32 @@ export interface ITimelineReducerAction {
 
 
 /**
+ * HyperText
+ */
+
+export interface IHyperTextState {
+    textType: string | null;
+    fontFamily: string | null;
+    fontSize: number | null;
+    isEmboldened: boolean | null;
+    isItalicized: boolean | null;
+    isUnderlined: boolean | null;
+    isHighlighted: boolean | null;
+}
+
+export interface IHyperTextStateBuilder {
+    textType?: string | null;
+    fontFamily?: string | null;
+    fontSize?: number | null;
+    isEmboldened?: boolean | null;
+    isItalicized?: boolean | null;
+    isUnderlined?: boolean | null;
+    isHighlighted?: boolean | null;
+}
+
+
+
+/**
  * Forms
  */
 

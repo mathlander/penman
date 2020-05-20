@@ -1,5 +1,6 @@
 import React, { Component, MouseEvent, SyntheticEvent } from 'react';
 import M from 'materialize-css';
+import { IHyperTextState } from '../../store/types';
 import './hypertextarea.css';
 
 export interface IHyperTextAreaControlsProps {
@@ -15,59 +16,38 @@ export interface IHyperTextAreaControlsProps {
     handleUnderline?: (e: MouseEvent<HTMLAnchorElement>) => void;
     handleHighlight?: (e: MouseEvent<HTMLAnchorElement>) => void;
     handleClearFormatting?: (e: MouseEvent<HTMLAnchorElement>) => void;
-    stateSubscriber?: (state: IHyperTextAreaControlsStateExternal) => void;
     isUndoDisabled?: boolean;
     isRedoDisabled?: boolean;
-    inheritedState?: IHyperTextAreaControlsState;
-    inheritedStateVersion?: number;
+    inheritedState?: IHyperTextState;
+    timestamp: number;
 };
 
-const now = Date.now();
-
-export interface IHyperTextAreaControlsStateExternal {
-    textType: string;
-    fontFamily: string;
-    fontSize: number;
-    isEmboldened: boolean;
-    isItalicized: boolean;
-    isUnderlined: boolean;
-    isHighlighted: boolean;
-    inheritedStateVersion: number;
-}
-
-interface IHyperTextAreaControlsState extends IHyperTextAreaControlsStateExternal {
+interface IHyperTextAreaControlsStateInternal {
     toolTipInstances: M.Tooltip[];
     dropdownInstances: M.Dropdown[];
+    uniqueId: number;
 }
 
 class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
-    state: IHyperTextAreaControlsState = {
+    state: IHyperTextAreaControlsStateInternal = {
         toolTipInstances: [],
         dropdownInstances: [],
-        textType: `span`,
-        fontFamily: `arial`,
-        fontSize: 11,
-        isEmboldened: false,
-        isItalicized: false,
-        isUnderlined: false,
-        isHighlighted: false,
-        inheritedStateVersion: 0,
+        uniqueId: Date.now(),
     }
 
     componentDidMount() {
-        const tooltipElements = document.querySelectorAll(`.hta-controls-tooltip-${now}`);
+        const tooltipElements = document.querySelectorAll(`.hta-controls-tooltip-${this.state.uniqueId}`);
         const toolTipInstances = M.Tooltip.init(tooltipElements, {
             enterDelay: 500,
             exitDelay: 10,
             position: 'right',
         });
-        const dropdownElements = document.querySelectorAll(`.hta-controls-dropdown-trigger-${now}`);
+        const dropdownElements = document.querySelectorAll(`.hta-controls-dropdown-trigger-${this.state.uniqueId}`);
         const dropdownInstances = M.Dropdown.init(dropdownElements, {
             coverTrigger: false,
         });
         this.setState({
             ...this.props.inheritedState,
-            inheritedStateVersion: this.props.inheritedStateVersion || now,
             toolTipInstances,
             dropdownInstances,
         });
@@ -80,69 +60,50 @@ class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
     }
 
     render() {
-        if (this.state.inheritedStateVersion < (this.props.inheritedStateVersion || 0)) {
-            // if the user navigates the cursor to a different section of the HTA, then
-            // the control row should be updated to reflect the settings of the selected span
-            this.setState({
-                ...this.props.inheritedState,
-                inheritedStateVersion: this.props.inheritedStateVersion,
-            });
-        } else if (this.props.stateSubscriber) {
-            this.props.stateSubscriber({
-                textType: this.state.textType,
-                fontFamily: this.state.fontFamily,
-                fontSize: this.state.fontSize,
-                isEmboldened: this.state.isEmboldened,
-                isItalicized: this.state.isItalicized,
-                isUnderlined: this.state.isUnderlined,
-                isHighlighted: this.state.isHighlighted,
-                inheritedStateVersion: this.state.inheritedStateVersion,
-            });
-        }
         return (
             <>
                 <div className="row" />
-                <div id={`hta-control-row-1-${now}`} className="row">
+                <div id={`hta-control-row-1-${this.state.uniqueId}`} className="row">
                     <div className="col s12">
                         <a href="#!" aria-label="Undo" className={`waves-effect btn-small col-content ${this.props.isUndoDisabled ? 'disabled' : 'teal lighten-2'}`} onClick={this.props.handleUndo}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Undo (Ctrl+Z)">undo</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Undo (Ctrl+Z)">undo</i>
                         </a>
                         <a href="#!" aria-label="Redo" className={`waves-effect btn-small col-content ${this.props.isRedoDisabled ? 'disabled' : 'teal lighten-2'}`} onClick={this.props.handleRedo}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Redo (Ctrl+Y)">redo</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Redo (Ctrl+Y)">redo</i>
                         </a>
                         &nbsp;
                         <a href="#!" aria-label="Print" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handlePrint}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Print (Ctrl+P)">print</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Print (Ctrl+P)">print</i>
                         </a>
                         <a href="#!" aria-label="Spellcheck" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleSpellCheck}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Check spelling (Ctrl+Alt+X)">spellcheck</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Check spelling (Ctrl+Alt+X)">spellcheck</i>
                         </a>
                         &nbsp;
-                        <a href="#!" aria-label="Bold" className={`waves-effect btn-small col-content teal ${this.state.isEmboldened ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleBold}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Bold (Ctrl+B)">format_bold</i>
+                        <a href="#!" aria-label="Bold" className={`waves-effect btn-small col-content teal ${this.props.inheritedState?.isEmboldened ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleBold}>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Bold (Ctrl+B)">format_bold</i>
                         </a>
-                        <a href="#!" aria-label="Italics" className={`waves-effect btn-small col-content teal ${this.state.isItalicized ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleItalics}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Italic (Ctrl+I)">format_italic</i>
+                        <a href="#!" aria-label="Italics" className={`waves-effect btn-small col-content teal ${this.props.inheritedState?.isItalicized ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleItalics}>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Italic (Ctrl+I)">format_italic</i>
                         </a>
-                        <a href="#!" aria-label="Underline" className={`waves-effect btn-small col-content teal ${this.state.isUnderlined ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleUnderline}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Underline (Ctrl+U)">format_underlined</i>
+                        <a href="#!" aria-label="Underline" className={`waves-effect btn-small col-content teal ${this.props.inheritedState?.isUnderlined ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleUnderline}>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Underline (Ctrl+U)">format_underlined</i>
                         </a>
                         <a href="#!" aria-label="Highlight" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleHighlight}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip="Highlight">{this.state.isHighlighted ? 'highlight_off' : 'highlight'}</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Highlight">{this.props.inheritedState?.isHighlighted ? 'highlight_off' : 'highlight'}</i>
                         </a>
                         &nbsp;
                         <a href="#!" aria-label="Clear formatting" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleClearFormatting}>
-                            <i className={`material-icons hta-controls-tooltip-${now}`} data-tooltip={`Clear formatting (Ctrl+\\)`}>format_clear</i>
+                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip={`Clear formatting (Ctrl+\\)`}>format_clear</i>
                         </a>
                     </div>
                 </div>
 
-                <div id={`hta-control-row-2-${now}`} className="row">
+                <div id={`hta-control-row-2-${this.state.uniqueId}`} className="row">
                     <div className="col s2" />
 
                     {/** Input Type Control */}
                     <div className="col s3">
-                        <select id={`hta-controls-text-type-${now}`} className={`browser-default hta-controls-tooltip-${now}`} data-tooltip="Text" defaultValue={this.state.textType} onSelect={this.props.handleTextType}>
+                        <select id={`hta-controls-text-type-${this.state.uniqueId}`} className={`browser-default hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Text" defaultValue={this.props.inheritedState?.textType || ''} onSelect={this.props.handleTextType}>
                             <option value="span">Normal</option>
                             <option value="h1">Heading 1</option>
                             <option value="h2">Heading 2</option>
@@ -155,7 +116,7 @@ class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
 
                     {/** Font Family Control */}
                     <div className="col s3">
-                        <select id={`hta-controls-text-type-${now}`} className={`browser-default hta-controls-tooltip-${now}`} data-tooltip="Font" defaultValue={this.state.fontFamily} onSelect={this.props.handleFontFamily}>
+                        <select id={`hta-controls-text-type-${this.state.uniqueId}`} className={`browser-default hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Font" defaultValue={this.props.inheritedState?.fontFamily || ''} onSelect={this.props.handleFontFamily}>
                             <option value="arial">Arial</option>
                             <option value="helvetica">Helvetica</option>
                             <option value="verdana">Verdana</option>
@@ -168,7 +129,7 @@ class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
 
                     {/** Font Size Control */}
                     <div className="col s2">
-                        <select id={`hta-controls-text-type-${now}`} className={`browser-default hta-controls-tooltip-${now}`} data-tooltip="Size" defaultValue={this.state.fontSize} onSelect={this.props.handleFontSize}>
+                        <select id={`hta-controls-text-type-${this.state.uniqueId}`} className={`browser-default hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Size" defaultValue={this.props.inheritedState?.fontSize?.toString() || ''} onSelect={this.props.handleFontSize}>
                             <option value="8">8</option>
                             <option value="9">9</option>
                             <option value="10">10</option>
