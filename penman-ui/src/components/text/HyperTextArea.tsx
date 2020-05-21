@@ -5,7 +5,7 @@ import { ICaretPosition, defaultControlState, computeCursorAndHyperTextState } f
 import './hypertextarea.css';
 
 export interface IHyperTextAreaProps {
-    defaultText: string;
+    innerHtml?: string;
     placeholder?: string;
     showControls?: boolean;
     update: (richText: string) => any;
@@ -294,7 +294,8 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
                 <div
                     id={`${this.state.bodyId}`}
                     className="hypertextarea card-panel white row"
-                    dangerouslySetInnerHTML={{ __html: this.state.innerHtml }}
+                    // dangerouslySetInnerHTML={{ __html: this.state.innerHtml }}
+                    dangerouslySetInnerHTML={this.props.innerHtml ? { __html: this.props.innerHtml } : undefined}
                     contentEditable={true}
                     onKeyDown={this.handleKeyDown}
                     onKeyUp={this.handleKeyUp}
