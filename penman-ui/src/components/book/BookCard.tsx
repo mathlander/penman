@@ -15,7 +15,6 @@ export interface IBookCardProps {
 
 interface IBookCardState {
     toolTipInstances: M.Tooltip[];
-    focusableElements: HTMLInputElement[];
     title: string;
     chapters: IChapter[];
     timelineId: number | null;
@@ -26,7 +25,6 @@ interface IBookCardState {
 class BookCard extends Component<IBookCardProps> {
     state: IBookCardState = {
         toolTipInstances: [],
-        focusableElements: [],
         title: '',
         chapters: [],
         timelineId: null,
@@ -45,15 +43,9 @@ class BookCard extends Component<IBookCardProps> {
             }
         );
         // put them in reverse order, with the last element in the collection representing the one that should be focused on first
-        const bookId = this.props.book.bookId;
-        const focusableElementsAsWildcards: any[] = [
-            document.getElementById(`book-form-title-${bookId}`),
-        ];
-        const focusableElements: HTMLInputElement[] = [];
-        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
          this.setState({
             toolTipInstances,
-            focusableElements,
+            // focusableElements,
             title: this.props.book.title,
             timelineId: this.props.book.timelineId,
         });
@@ -61,12 +53,6 @@ class BookCard extends Component<IBookCardProps> {
 
     componentWillUnmount() {
         this.state.toolTipInstances.forEach((tooltip: M.Tooltip) => tooltip.destroy());
-    }
-
-    componentDidUpdate() {
-        if (this.state.isEditing) {
-            this.state.focusableElements.forEach(inputElement => inputElement.focus());
-        }
     }
 
     handleDelete = (e: any) => {
@@ -130,7 +116,7 @@ class BookCard extends Component<IBookCardProps> {
                             <form>
                                 <div className="input-field">
                                     <input id={`book-form-title-${bookId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required />
-                                    <label htmlFor={`book-form-title-${bookId}`}>Title</label>
+                                    <label className={this.state.title && "active"} htmlFor={`book-form-title-${bookId}`}>Title</label>
                                 </div>
                                 <div className="input-field center">
                                     <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>

@@ -14,7 +14,6 @@ export interface IPersonificationCardProps {
 interface IPersonificationCardState {
     toolTipInstances: M.Tooltip[];
     birthdayPicker: M.Datepicker | null;
-    focusableElements: HTMLInputElement[];
     firstName: string;
     middleName: string;
     lastName: string;
@@ -28,7 +27,6 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
     state: IPersonificationCardState = {
         toolTipInstances: [],
         birthdayPicker: null,
-        focusableElements: [],
         firstName: '',
         middleName: '',
         lastName: '',
@@ -54,19 +52,9 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
             onSelect: birthdayCallback,
         }).shift() || null;
         // put them in reverse order, with the last element in the collection representing the one that should be focused on first
-        const personificationId = this.props.personification.personificationId;
-        const focusableElementsAsWildcards: any[] = [
-            document.getElementById(`personification-form-birthday-${personificationId}`),
-            document.getElementById(`personification-form-last-name-${personificationId}`),
-            document.getElementById(`personification-form-middle-name-${personificationId}`),
-            document.getElementById(`personification-form-first-name-${personificationId}`),
-        ];
-        const focusableElements: HTMLInputElement[] = [];
-        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
         this.setState({
             toolTipInstances,
             birthdayPicker,
-            focusableElements,
             firstName: this.props.personification.firstName,
             middleName: this.props.personification.middleName,
             lastName: this.props.personification.lastName,
@@ -77,12 +65,6 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
     componentWillUnmount() {
         this.state.toolTipInstances.forEach((tooltip: M.Tooltip) => tooltip.destroy());
         this.state.birthdayPicker?.destroy();
-    }
-
-    componentDidUpdate() {
-        if (this.state.isEditing) {
-            this.state.focusableElements.forEach(inputElement => inputElement.focus());
-        }
     }
 
     handleDelete = (e: any) => {
@@ -156,19 +138,19 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
                             <form>
                                 <div className="input-field">
                                     <input id={`personification-form-first-name-${personificationId}`} name={`personification-form-first-name-${personificationId}`} type="text" className="validate" onChange={this.handleFirstNameChange} value={this.state.firstName} />
-                                    <label htmlFor={`personification-form-first-name-${personificationId}`}>First Name</label>
+                                    <label className={this.state.firstName && "active"} htmlFor={`personification-form-first-name-${personificationId}`}>First Name</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`personification-form-middle-name-${personificationId}`} name={`personification-form-middle-name-${personificationId}`} type="text" className="validate" onChange={this.handleMiddleNameChange} value={this.state.middleName} />
-                                    <label htmlFor={`personification-form-middle-name-${personificationId}`}>Middle Name</label>
+                                    <label className={this.state.middleName && "active"} htmlFor={`personification-form-middle-name-${personificationId}`}>Middle Name</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`personification-form-last-name-${personificationId}`} name={`personification-form-last-name-${personificationId}`} type="text" className="validate" onChange={this.handleFirstNameChange} value={this.state.lastName} />
-                                    <label htmlFor={`personification-form-last-name-${personificationId}`}>Last Name</label>
+                                    <label className={this.state.lastName && "active"} htmlFor={`personification-form-last-name-${personificationId}`}>Last Name</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`personification-form-birthday-${personificationId}`} type="text" className={`datepicker datepicker-personification-${this.props.personification.personificationId}-birthday`} defaultValue={this.state.birthday.toDateString()} required />
-                                    <label htmlFor={`personification-form-birthday-${personificationId}`}>Birthday</label>
+                                    <label className={this.state.birthday && "active"} htmlFor={`personification-form-birthday-${personificationId}`}>Birthday</label>
                                 </div>
                                 <div className="input-field center">
                                     <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>

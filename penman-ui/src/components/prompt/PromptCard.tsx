@@ -13,7 +13,6 @@ export interface IPromptCardProps {
 
 interface IPromptCardState {
     toolTipInstances: M.Tooltip[];
-    focusableElements: HTMLInputElement[];
     resizableElements: Element[];
     body: string;
     title: string;
@@ -23,7 +22,6 @@ interface IPromptCardState {
 class PromptCard extends Component<IPromptCardProps> {
     state: IPromptCardState = {
         toolTipInstances: [],
-        focusableElements: [],
         resizableElements: [],
         body: '',
         title: '',
@@ -42,18 +40,11 @@ class PromptCard extends Component<IPromptCardProps> {
         );
         // put them in reverse order, with the last element in the collection representing the one that should be focused on first
         const promptId = this.props.prompt.promptId;
-        const focusableElementsAsWildcards: any[] = [
-            document.getElementById(`prompt-form-title-${promptId}`),
-            document.getElementById(`prompt-form-body-${promptId}`),
-        ];
-        const focusableElements: HTMLInputElement[] = [];
-        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
         const resizableElements: Element[] = [
             document.getElementById(`prompt-form-body-${promptId}`) || document.createElement('textarea'),
         ];
         this.setState({
             toolTipInstances,
-            focusableElements,
             resizableElements,
             body: this.props.prompt.body,
             title: this.props.prompt.title,
@@ -66,7 +57,6 @@ class PromptCard extends Component<IPromptCardProps> {
 
     componentDidUpdate() {
         if (this.state.isEditing) {
-            this.state.focusableElements.forEach(inputElement => inputElement.focus());
             this.state.resizableElements.forEach(textArea => M.textareaAutoResize(textArea));
         }
     }
@@ -133,11 +123,11 @@ class PromptCard extends Component<IPromptCardProps> {
                             <form>
                                 <div className="input-field">
                                     <input id={`prompt-form-title-${promptId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required />
-                                    <label htmlFor={`prompt-form-title-${promptId}`}>Title</label>
+                                    <label className={this.state.title && "active"} htmlFor={`prompt-form-title-${promptId}`}>Title</label>
                                 </div>
                                 <div className="input-field">
                                     <textarea id={`prompt-form-body-${promptId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required />
-                                    <label htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
+                                    <label className={this.state.body && "active"} htmlFor={`prompt-form-body-${promptId}`}>Prompt</label>
                                 </div>
                                 <div className="input-field center">
                                     <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>

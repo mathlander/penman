@@ -15,7 +15,6 @@ interface IShortCardState {
     toolTipInstances: M.Tooltip[];
     eventStartPicker: M.Datepicker | null;
     eventEndPicker: M.Datepicker | null;
-    focusableElements: HTMLInputElement[];
     resizableElements: Element[];
     body: string;
     title: string;
@@ -29,7 +28,6 @@ const now = new Date();
 class ShortCard extends Component<IShortCardProps> {
     state: IShortCardState = {
         toolTipInstances: [],
-        focusableElements: [],
         resizableElements: [],
         eventStartPicker: null,
         eventEndPicker: null,
@@ -50,7 +48,6 @@ class ShortCard extends Component<IShortCardProps> {
                 position: 'right',
             }
         );
-        // <input id={`short-form-event-start-${shortId}`} type="text" className={`datepicker datepicker-short-${shortId}-event-start`} required />
         const eventStartElements = document.querySelectorAll(`.datepicker-short-${this.props.short.shortId}-event-start`);
         const eventEndElements = document.querySelectorAll(`.datepicker-short-${this.props.short.shortId}-event-end`);
         const setStateProxyFn = (key: string, date: Date) => this.setState({ [key]: date });
@@ -66,20 +63,11 @@ class ShortCard extends Component<IShortCardProps> {
         }).shift() || null;
         // put them in reverse order, with the last element in the collection representing the one that should be focused on first
         const shortId = this.props.short.shortId;
-        const focusableElementsAsWildcards: any[] = [
-            document.getElementById(`short-form-title-${shortId}`),
-            document.getElementById(`short-form-event-start-${shortId}`),
-            document.getElementById(`short-form-event-end-${shortId}`),
-            document.getElementById(`short-form-body-${shortId}`),
-        ];
-        const focusableElements: HTMLInputElement[] = [];
-        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
         const resizableElements: Element[] = [
             document.getElementById(`short-form-body-${shortId}`) || document.createElement('textarea'),
         ];
         this.setState({
             toolTipInstances,
-            focusableElements,
             resizableElements,
             eventStartPicker,
             eventEndPicker,
@@ -98,7 +86,6 @@ class ShortCard extends Component<IShortCardProps> {
 
     componentDidUpdate() {
         if (this.state.isEditing) {
-            this.state.focusableElements.forEach(inputElement => inputElement.focus());
             this.state.resizableElements.forEach(textArea => M.textareaAutoResize(textArea));
         }
     }
@@ -169,19 +156,19 @@ class ShortCard extends Component<IShortCardProps> {
                             <form>
                                 <div className="input-field">
                                     <input id={`short-form-title-${shortId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required />
-                                    <label htmlFor={`short-form-title-${shortId}`}>Title</label>
+                                    <label className={this.state.title && "active"} htmlFor={`short-form-title-${shortId}`}>Title</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`short-form-event-start-${shortId}`} type="text" className={`datepicker datepicker-short-${shortId}-event-start`} defaultValue={this.state.eventStart.toDateString()} required />
-                                    <label htmlFor={`short-form-event-start-${shortId}`}>Event Start</label>
+                                    <label className={this.state.eventStart && "active"} htmlFor={`short-form-event-start-${shortId}`}>Event Start</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`short-form-event-end-${shortId}`} type="text" className={`datepicker datepicker-short-${shortId}-event-end`} defaultValue={this.state.eventEnd.toDateString()} required />
-                                    <label htmlFor={`short-form-event-end-${shortId}`}>Event End</label>
+                                    <label className={this.state.eventEnd && "active"} htmlFor={`short-form-event-end-${shortId}`}>Event End</label>
                                 </div>
                                 <div className="input-field">
                                     <textarea id={`short-form-body-${shortId}`} className="validate materialize-textarea" data-length="100000000" onChange={this.handleBodyChange} value={this.state.body} required />
-                                    <label htmlFor={`short-form-body-${shortId}`}>Short</label>
+                                    <label className={this.state.body && "active"} htmlFor={`short-form-body-${shortId}`}>Short</label>
                                 </div>
                                 <div className="input-field center">
                                     <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>

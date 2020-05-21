@@ -15,7 +15,6 @@ interface ITimelineCardState {
     toolTipInstances: M.Tooltip[];
     eventStartPicker: M.Datepicker | null;
     eventEndPicker: M.Datepicker | null;
-    focusableElements: HTMLInputElement[];
     title: string;
     eventStart: Date;
     eventEnd: Date;
@@ -27,7 +26,6 @@ const now = new Date();
 class TimelineCard extends Component<ITimelineCardProps> {
     state: ITimelineCardState = {
         toolTipInstances: [],
-        focusableElements: [],
         eventStartPicker: null,
         eventEndPicker: null,
         title: '',
@@ -60,18 +58,8 @@ class TimelineCard extends Component<ITimelineCardProps> {
             defaultDate: now,
             onSelect: endCallback,
         }).shift() || null;
-        // put them in reverse order, with the last element in the collection representing the one that should be focused on first
-        const timelineId = this.props.timeline.timelineId;
-        const focusableElementsAsWildcards: any[] = [
-            document.getElementById(`timeline-form-title-${timelineId}`),
-            document.getElementById(`timeline-form-event-start-${timelineId}`),
-            document.getElementById(`timeline-form-event-end-${timelineId}`),
-        ];
-        const focusableElements: HTMLInputElement[] = [];
-        focusableElementsAsWildcards.forEach(inputElement => focusableElements.push(inputElement));
         this.setState({
             toolTipInstances,
-            focusableElements,
             eventStartPicker,
             eventEndPicker,
             title: this.props.timeline.title,
@@ -84,12 +72,6 @@ class TimelineCard extends Component<ITimelineCardProps> {
         this.state.toolTipInstances.forEach((tooltip: M.Tooltip) => tooltip.destroy());
         this.state.eventStartPicker?.destroy();
         this.state.eventEndPicker?.destroy();
-    }
-
-    componentDidUpdate() {
-        if (this.state.isEditing) {
-            this.state.focusableElements.forEach(inputElement => inputElement.focus());
-        }
     }
 
     handleDelete = (e: any) => {
@@ -149,15 +131,15 @@ class TimelineCard extends Component<ITimelineCardProps> {
                             <form>
                                 <div className="input-field">
                                     <input id={`timeline-form-title-${timelineId}`} type="text" className="validate" onChange={this.handleTitleChange} value={this.state.title} required />
-                                    <label htmlFor={`timeline-form-title-${timelineId}`}>Title</label>
+                                    <label className={this.state.title && "active"} htmlFor={`timeline-form-title-${timelineId}`}>Title</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`timeline-form-event-start-${timelineId}`} type="text" className={`datepicker datepicker-timeline-${timelineId}-event-start`} defaultValue={this.state.eventStart.toDateString()} required />
-                                    <label htmlFor={`timeline-form-event-start-${timelineId}`}>Event Start</label>
+                                    <label className={this.state.eventStart && "active"} htmlFor={`timeline-form-event-start-${timelineId}`}>Event Start</label>
                                 </div>
                                 <div className="input-field">
                                     <input id={`timeline-form-event-end-${timelineId}`} type="text" className={`datepicker datepicker-timeline-${timelineId}-event-end`} defaultValue={this.state.eventEnd.toDateString()} required />
-                                    <label htmlFor={`timeline-form-event-end-${timelineId}`}>Event End</label>
+                                    <label className={this.state.eventEnd && "active"} htmlFor={`timeline-form-event-end-${timelineId}`}>Event End</label>
                                 </div>
                                 <div className="input-field center">
                                     <button className="btn-small" aria-label="Cancel" onClick={this.handleCancel}>Cancel</button>
