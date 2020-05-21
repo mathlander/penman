@@ -1,4 +1,4 @@
-import React, { Component, SyntheticEvent, MouseEvent, KeyboardEvent } from 'react';
+import React, { Component, SyntheticEvent, MouseEvent, KeyboardEvent, FocusEvent } from 'react';
 import HyperTextAreaControls from './HyperTextAreaControls';
 import { IHyperTextState } from '../../store/types';
 import { ICaretPosition, defaultControlState, computeCursorAndHyperTextState } from './hyperTextUtilities';
@@ -6,6 +6,7 @@ import './hypertextarea.css';
 
 export interface IHyperTextAreaProps {
     defaultText: string;
+    placeholder?: string;
     showControls?: boolean;
     update: (richText: string) => any;
 };
@@ -32,6 +33,7 @@ interface IHyperTextAreaState {
     uniqueId: number;
     selectionDebounceHandle: NodeJS.Timeout | null;
     selectionDebounceTimeout: number;
+    placeholderElement: Element;
 }
 
 class HyperTextArea extends Component<IHyperTextAreaProps> {
@@ -53,23 +55,24 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
         uniqueId: Date.now(),
         selectionDebounceHandle: null,
         selectionDebounceTimeout: 300,
+        placeholderElement: document.createElement('span'),
     }
 
     componentDidMount() {
         const rootElement = document.getElementById(this.state.rootId);
         const bodyElement = document.getElementById(this.state.bodyId);
         document.addEventListener('selectionchange', this.handleSelectionChange, true);
-        const unorderedList = document.createElement('ul');
-        const firstItem = document.createElement('li');
-        const secondItem = document.createElement('li');
-        firstItem.innerText = 'The first item in the list';
-        secondItem.innerText = 'The second item in the list';
-        unorderedList.appendChild(firstItem);
-        unorderedList.appendChild(secondItem);
+        const textNode = document.createTextNode(this.props.placeholder || 'Text');
+        const placeholderElement = document.createElement('span');
+        placeholderElement.classList.add('placeholder');
+        placeholderElement.appendChild(textNode);
+        if (bodyElement && !bodyElement.innerHTML) {
+            bodyElement.appendChild(placeholderElement);
+        }
         this.setState({
             rootElement,
             bodyElement,
-            innerHtml: unorderedList.innerHTML,
+            placeholderElement,
         });
     }
 
@@ -100,16 +103,10 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
         }
     }
 
-    handlePrint = (e: MouseEvent<HTMLAnchorElement>) => {
+    handlePrint = (e: MouseEvent<HTMLAnchorElement> | Event) => {
         // handle printing
         e.preventDefault();
         // console.log(`HyperTextArea.handlePrint was invoked`);
-    }
-
-    handleSpellCheck = (e: MouseEvent<HTMLAnchorElement>) => {
-        // npm install simple-spellchecker
-        e.preventDefault();
-        // console.log(`HyperTextArea.handleSpellCheck was invoked`);
     }
 
     handleTextType = (e: SyntheticEvent<HTMLSelectElement>) => {
@@ -212,13 +209,17 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
             hyperTextState,
             timestamp: Date.now(),
         })
-        // console.log(`updated caretPosition to start: ${caretPosition.start}, end: ${caretPosition.end}`);
     }
 
     handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-        // this.updateCaretPosition();
-        // e.preventDefault();
-        // console.log(`key down captured:`, e);
+        this.updateCaretPosition();
+        if (e.ctrlKey) {
+            // console.log(`e.key: ${e.key}, e.keyCode: ${e.keyCode}`);
+            if (e.key === 'p') {
+                e.preventDefault();
+                console.log(`let's print!`);
+            }
+        }
     }
 
     handleKeyUp = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -235,8 +236,6 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
 
     handleMouseUp = (e: MouseEvent<HTMLDivElement>) => {
         this.updateCaretPosition();
-        //
-        // console.log(`mouse up captured:`, e);
     }
 
     handleSelectionChange = (e: Event) => {
@@ -254,7 +253,16 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
                 selectionDebounceHandle,
             });
         }
-        // console.log(`handleSelectionChange was invoked:`, e);
+    }
+
+    handleFocus = (e: FocusEvent<HTMLDivElement>) => {
+        if (this.state.bodyElement.firstChild === this.state.placeholderElement) this.state.bodyElement.removeChild(this.state.placeholderElement);
+    }
+
+    handleBlur = (e: FocusEvent<HTMLDivElement>) => {
+        if (!this.state.bodyElement.innerHTML) {
+            this.state.bodyElement.appendChild(this.state.placeholderElement);
+        }
     }
 
     render() {
@@ -269,7 +277,6 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
                         handleRedo={this.handleRedo}
                         isRedoDisabled={this.state.redoStack.length === 0}
                         handlePrint={this.handlePrint}
-                        handleSpellCheck={this.handleSpellCheck}
                         handleTextType={this.handleTextType}
                         handleFontFamily={this.handleFontFamily}
                         handleFontSize={this.handleFontSize}
@@ -289,9 +296,9 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
                     onKeyUp={this.handleKeyUp}
                     onMouseDown={this.handleMouseDown}
                     onMouseUp={this.handleMouseUp}
+                    onFocus={this.handleFocus}
+                    onBlur={this.handleBlur}
                     />
-                <span>Start: {this.state.caretPosition.start}</span> <br/>
-                <span>End: {this.state.caretPosition.end}</span>
             </div>
         );
     }

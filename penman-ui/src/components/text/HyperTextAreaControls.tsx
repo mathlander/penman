@@ -7,7 +7,6 @@ export interface IHyperTextAreaControlsProps {
     handleUndo?: (e: MouseEvent<HTMLAnchorElement>) => void;
     handleRedo?: (e: MouseEvent<HTMLAnchorElement>) => void;
     handlePrint?: (e: MouseEvent<HTMLAnchorElement>) => void;
-    handleSpellCheck?: (e: MouseEvent<HTMLAnchorElement>) => void;
     handleTextType?: (e: SyntheticEvent<HTMLSelectElement>) => void;
     handleFontFamily?: (e: SyntheticEvent<HTMLSelectElement>) => void;
     handleFontSize?: (e: SyntheticEvent<HTMLSelectElement>) => void;
@@ -74,9 +73,6 @@ class HyperTextAreaControls extends Component<IHyperTextAreaControlsProps> {
                         &nbsp;
                         <a href="#!" aria-label="Print" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handlePrint}>
                             <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Print (Ctrl+P)">print</i>
-                        </a>
-                        <a href="#!" aria-label="Spellcheck" className={`waves-effect btn-small col-content teal lighten-2`} onClick={this.props.handleSpellCheck}>
-                            <i className={`material-icons hta-controls-tooltip-${this.state.uniqueId}`} data-tooltip="Check spelling (Ctrl+Alt+X)">spellcheck</i>
                         </a>
                         &nbsp;
                         <a href="#!" aria-label="Bold" className={`waves-effect btn-small col-content teal ${this.props.inheritedState?.isEmboldened ? 'text-darken-2' : 'lighten-2'}`} onClick={this.props.handleBold}>
