@@ -1,4 +1,4 @@
-import React, { Component, SyntheticEvent, MouseEvent, KeyboardEvent, FocusEvent } from 'react';
+import React, { Component, SyntheticEvent, MouseEvent, KeyboardEvent, FocusEvent, FormEvent } from 'react';
 import HyperTextAreaControls from './HyperTextAreaControls';
 import { IHyperTextState } from '../../store/types';
 import { ICaretPosition, defaultControlState, computeCursorAndHyperTextState } from './hyperTextUtilities';
@@ -265,6 +265,10 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
         }
     }
 
+    handleInput = (e: FormEvent<HTMLDivElement>) => {
+        this.props.update(this.state.bodyElement.innerHTML);
+    }
+
     render() {
         return (
             <div id={this.state.rootId} className="hypertextarea container">
@@ -298,6 +302,7 @@ class HyperTextArea extends Component<IHyperTextAreaProps> {
                     onMouseUp={this.handleMouseUp}
                     onFocus={this.handleFocus}
                     onBlur={this.handleBlur}
+                    onInput={this.handleInput}
                     />
             </div>
         );
