@@ -1,11 +1,83 @@
 /** DEFAULTS
 */
 
-.hypertextarea.card-panel {
+div.hypertextarea.body,
+div.hypertextarea.placeholder {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     font-weight: 400;
     font-size: 14px;
     text-align: left;
+}
+
+/* start by styling the container similar to a materialize textarea */
+div.hypertextarea.body {
+    writing-mode: horizontal-tb;
+    /* -webkit-writing-mode: horizontal-tb !important; */
+    text-rendering: auto;
+    color: -internal-light-darkcolor(black, white);
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    -webkit-appearance: textarea;
+    flex-direction: column;
+    resize: auto;
+    cursor: text;
+    /* white-space: pre-wrap; */
+    white-space: inherit;
+    overflow-wrap: break-word;
+    margin: 0cm;
+    /* font: 400 13.3333px Arial; */
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(169, 169, 169);
+    border-image: initial;
+    padding: 2px;
+
+    overflow: auto;
+
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #9e9e9e;
+    border-radius: 0;
+    outline: none;
+    /* height: 3rem; */
+    height: fit-content;
+    width: 100%;
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    padding: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    -webkit-transition: border .3s, -webkit-box-shadow .3s;
+    transition: border .3s, -webkit-box-shadow .3s;
+    transition: box-shadow .3s, border .3s;
+    transition: box-shadow .3s, border .3s, -webkit-box-shadow .3s;
+
+    line-height: normal;
+    overflow-y: hidden;
+    padding: .8rem 0 .8rem 0;
+    resize: none;
+    min-height: 3rem;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+div.hypertextarea.body.valid {
+    border-bottom: 1px solid #4CAF50;
+    -webkit-box-shadow: 0 1px 0 0 #4CAF50;
+    box-shadow: 0 1px 0 0 #4CAF50;
+}
+
+div.hypertextarea.body.invalid {
+    border-bottom: 1px solid #F44336;
+    -webkit-box-shadow: 0 1px 0 0 #F44336;
+    box-shadow: 0 1px 0 0 #F44336;
 }
 
 
