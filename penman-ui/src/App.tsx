@@ -3,6 +3,7 @@ import { ConnectedRouter } from 'connected-react-router';
 import { Switch, Route } from 'react-router-dom';
 import { history } from './store/reducers/rootReducer';
 import OfflineManager from './components/offline/OfflineManager';
+import CustomInputManager from './components/text/CustomInputManager';
 import Toaster from './components/toaster/Toaster';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './components/dashboard/Dashboard';
@@ -21,6 +22,7 @@ function App() {
     <ConnectedRouter history={history}>
       <div className="App">
         <OfflineManager />
+        <CustomInputManager />
         <Toaster />
         <Navbar />
         <Switch>
