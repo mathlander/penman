@@ -132,7 +132,13 @@ const buildHyperTextState = (leafNode: Node, containerElement: Element, hyperTex
     }
 };
 
-export const walkLeafNodes = (containerElement: Element, startNode: Node, endNode: Node, elementCallback: (currentElement: Element) => any, leafNodeCallback: (currentNode: Node) => any) => {
+export const walkLeafNodes = (
+                                containerElement: Element,
+                                startNode: Node,
+                                endNode: Node,
+                                elementCallback: (currentElement: Element) => any,
+                                leafNodeCallback: (currentNode: Node) => any,
+                                shortCircuitCallback = () => false) => {
     if (startNode === endNode) {
         // make sure that this function behaves consistently even when the cursor has a width of zero
         let parentElement = startNode.parentElement;
@@ -154,7 +160,7 @@ export const walkLeafNodes = (containerElement: Element, startNode: Node, endNod
     let elementStackQueue: Element[] = [containerElement];
     const recursiveWalker = (branchRoot: Element) => {
         for (let i = 0; i < branchRoot.childNodes.length; i++) {
-            if (endReached) break;
+            if (endReached || shortCircuitCallback()) break;
             let childElement: Element | Node = branchRoot.childNodes[i];
             if (childElement instanceof Element) {
                 elementStackQueue.push(childElement);
@@ -179,7 +185,7 @@ export const walkLeafNodes = (containerElement: Element, startNode: Node, endNod
         elementStackQueue.pop();
     };
     recursiveWalker(containerElement);
-}
+};
 
 export const computeCursorAndHyperTextState = (element: HTMLDivElement) => {
     let caretPosition: ICaretPosition = {
@@ -245,3 +251,117 @@ export const computeCursorAndHyperTextState = (element: HTMLDivElement) => {
         hyperTextState,
     };
 };
+
+export const doesElementEncapsulateSelection = (element: Element) => {
+    if (!element.ownerDocument) return false;
+    const doc = element.ownerDocument;
+    const win = doc.defaultView;
+    if (win && typeof win.getSelection !== 'undefined') {
+        const selection = win.getSelection() || new Selection();
+        let anchorAncestorElement: Element | null = selection.anchorNode?.parentElement || null;
+        let ancestry: { anchor: Element[], focus: Element[] } = {
+            anchor: [],
+            focus: [],
+        };
+        let isAnchorContainedByElement = false;
+        while (anchorAncestorElement) {
+            ancestry.anchor.unshift(anchorAncestorElement);
+            if (anchorAncestorElement.id === element.id) {
+                isAnchorContainedByElement = true;
+                break;
+            }
+            anchorAncestorElement = anchorAncestorElement.parentElement;
+        }
+        let focusAncestorElement: Element | null = selection.focusNode?.parentElement || null;
+        let isFocusContainedByElement = false;
+        while (focusAncestorElement) {
+            ancestry.focus.unshift(focusAncestorElement);
+            if (focusAncestorElement.id === element.id) {
+                isFocusContainedByElement = true;
+                break;
+            }
+            focusAncestorElement = focusAncestorElement.parentElement;
+        }
+        return isAnchorContainedByElement && isFocusContainedByElement;
+    }
+    return false;
+};
+
+export const getFocusNode = (element: Element) => {
+    if (element.ownerDocument) {
+        const doc = element.ownerDocument;
+        const win = doc.defaultView;
+        if (win && typeof win.getSelection !== 'undefined') {
+            const selection = win.getSelection() || new Selection();
+            return selection.focusNode;
+        }
+    }
+    return null;
+};
+
+export const positionCaret = (root: Element, blinkingCursor: Element) => {
+    // let newParent: Element | null = null;
+    // let focusNode = getFocusNode(root);
+
+
+    let caretPosition: ICaretPosition = {
+        start: 0,
+        end: 0,
+    };
+    if (!root.ownerDocument) return;
+    const doc = root.ownerDocument;
+    const win = doc.defaultView;
+    if (win && typeof win.getSelection !== 'undefined') {
+        const selection = win.getSelection() || new Selection();
+        let anchorAncestorElement: Element | null = selection.anchorNode?.parentElement || null;
+        let ancestry: { anchor: Element[], focus: Element[] } = {
+            anchor: [],
+            focus: [],
+        };
+        let isAnchorContainedByElement = false;
+        while (anchorAncestorElement) {
+            ancestry.anchor.unshift(anchorAncestorElement);
+            if (anchorAncestorElement.id === root.id) {
+                isAnchorContainedByElement = true;
+                break;
+            }
+            anchorAncestorElement = anchorAncestorElement.parentElement;
+        }
+        let focusAncestorElement: Element | null = selection.focusNode?.parentElement || null;
+        let isFocusContainedByElement = false;
+        while (focusAncestorElement) {
+            ancestry.focus.unshift(focusAncestorElement);
+            if (focusAncestorElement.id === root.id) {
+                isFocusContainedByElement = true;
+                break;
+            }
+            focusAncestorElement = focusAncestorElement.parentElement;
+        }
+        if (isAnchorContainedByElement && isFocusContainedByElement && selection.rangeCount > 0) {
+            let range = selection.getRangeAt(0);
+            // let preCaretRange = range.cloneRange();
+            // preCaretRange.selectNodeContents(root);
+            // preCaretRange.setEnd(range.startContainer, range.startOffset);
+            // caretPosition.start = preCaretRange.toString().length;
+            // preCaretRange.setEnd(range.endContainer, range.endOffset);
+            // caretPosition.end = preCaretRange.toString().length;
+            const parentElement = range.endContainer.parentElement;
+            if (parentElement) {
+                const prefixText = range.endContainer.textContent?.slice(0, range.endOffset) || '';
+                const postfixText = range.endContainer.textContent?.slice(range.endOffset) || '';
+                // remove it from it's previous location, if anywhere
+                if (blinkingCursor.parentElement) {
+                    blinkingCursor.parentElement.removeChild(blinkingCursor);
+                }
+                // replace the text with the cursor
+                parentElement.replaceChild(blinkingCursor, range.endContainer);
+                // restore the text to either side
+                blinkingCursor.insertAdjacentText('beforebegin', prefixText);
+                blinkingCursor.insertAdjacentText('afterend', postfixText);
+            }
+            // console.log(`proposed cursor: ${range.endContainer.textContent?.slice(0, range.endOffset)}${blinkingCursor.outerHTML}${range.endContainer.textContent?.slice(range.endOffset)}`);
+            // range.endContainer.parentElement?.replaceChild()
+        } else console.log(`isAnchorContainedByElement: ${isAnchorContainedByElement}, isFocusContainedByElement: ${isFocusContainedByElement}, selectionRangeCount: ${selection.rangeCount}`);
+    }
+};
+

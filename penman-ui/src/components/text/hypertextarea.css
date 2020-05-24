@@ -1,6 +1,58 @@
 /** DEFAULTS
 */
 
+div.hypertextarea.body span.blinking-cursor {
+    color: -internal-light-darkcolor(black, white);
+    -webkit-animation: 1s blink step-end infinite;
+    -moz-animation: 1s blink step-end infinite;
+    -ms-animation: 1s blink step-end infinite;
+    -o-animation: 1s blink step-end infinite;
+    animation: 1s blink step-end infinite;
+    margin-left: -3px;
+    margin-right: -4px;
+}
+@keyframes blink {
+    from, to {
+        color: transparent;
+    }
+    50% {
+        color: black;
+    }
+}
+@-moz-keyframes blink {
+    from, to {
+        color: transparent;
+    }
+    50% {
+        color: black;
+    }
+}
+@-webkit-keyframes blink {
+    from, to {
+        color: transparent;
+    }
+    50% {
+        color: black;
+    }
+}
+@-ms-keyframes blink {
+    from, to {
+        color: transparent;
+    }
+    50% {
+        color: black;
+    }
+}
+@-o-keyframes blink {
+    from, to {
+        color: transparent;
+    }
+    50% {
+        color: black;
+    }
+}
+
+
 div.hypertextarea.body,
 div.hypertextarea.placeholder {
     font-family: Verdana, Arial, Helvetica, sans-serif;
