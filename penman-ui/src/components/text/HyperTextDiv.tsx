@@ -2,11 +2,12 @@ import React, { Component, MouseEvent, FormEvent } from 'react';
 import { IHyperTextState } from '../../store/types';
 import { subscribeToInterceptEvents, ISubscriber } from './CustomInputManager';
 import { ICaretPosition, defaultControlState, computeCursorAndHyperTextState } from './hyperTextUtilities';
-import { doesElementEncapsulateSelection, positionCaret } from './hyperTextUtilities';
+import { doesElementEncapsulateSelection, positionCaret, placeCaretAfterTextNode } from './hyperTextUtilities';
 import { textConstants } from '../../config/constants';
 import './hypertextarea.css';
 
-const printableCharacterRegExp: RegExp = /[a-zA-Z0-9`~!@#$%^&*()=+ \r\n\t[\]{}\\/?,.<>;':"_-]+/.compile();
+const printableCharacterRegExp: RegExp = RegExp(/[a-zA-Z0-9`~!@#$%^&*()=+ \r\n\t[\]{}\\/?,.<>;':"_-]+/);
+const ignoreCharacterRegExp: RegExp = RegExp(/(Shift)/);
 
 export interface IHyperTextDivProps {
     innerHtml?: string;
@@ -173,21 +174,33 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
                 // prompt to first level child textNode
             }
             // this.state.bodyElement.onkeydown
-        } else if (!e.altKey && printableCharacterRegExp.test(e.key)) {
+        } else if (!e.altKey && !ignoreCharacterRegExp.test(e.key) && printableCharacterRegExp.test(e.key)) {
             // apply a command which appends a payload to some previous text state
             if (e.key === 'Enter') {
                 const applicableTextNode = this.state.activeTextNode;
                 const nextSibling = applicableTextNode.nextSibling;
                 const breakElement = document.createElement('br');
+                const newTextNode = document.createTextNode(' ');
+                const componentRef = this;
                 const lineBreakCommand: ICommand = {
                     type: textConstants.LINE_BREAK_COMMAND,
                     payload: breakElement,
                     apply: function() {
-                        if (nextSibling) applicableTextNode.parentElement?.insertBefore(this.payload, applicableTextNode.nextSibling);
-                        else applicableTextNode.parentElement?.appendChild(this.payload);
+                        if (nextSibling) {
+                            applicableTextNode.parentElement?.insertBefore(this.payload, applicableTextNode.nextSibling);
+                            applicableTextNode.parentElement?.insertBefore(newTextNode, applicableTextNode.nextSibling);
+                        }
+                        else {
+                            applicableTextNode.parentElement?.appendChild(this.payload);
+                        }
+                        placeCaretAfterTextNode(newTextNode, componentRef.state.cursor);
+                        componentRef.setState({ activeTextNode: newTextNode });
                     },
                     undo: function() {
+                        newTextNode.remove();
                         breakElement.remove();
+                        placeCaretAfterTextNode(applicableTextNode, componentRef.state.cursor);
+                        componentRef.setState({ activeTextNode: applicableTextNode });
                     },
                 };
                 this.state.undoStack.push(lineBreakCommand);
@@ -200,6 +213,7 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
                     // apply idempotent PRINTABLE_TEXT_COMMAND
                     lastCommand.apply();
                 } else {
+                    const componentRef = this;
                     const applicableTextNode = this.state.activeTextNode;
                     const initialTextValue = this.state.activeTextNode.textContent;
                     const printableTextCommand: ICommand = {
@@ -207,9 +221,11 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
                         payload: e.key,
                         apply: function() {
                             applicableTextNode.textContent = initialTextValue + this.payload;
+                            placeCaretAfterTextNode(applicableTextNode, componentRef.state.cursor);
                         },
                         undo: function() {
                             applicableTextNode.textContent = initialTextValue;
+                            placeCaretAfterTextNode(applicableTextNode, componentRef.state.cursor);
                         },
                     }
                     this.state.undoStack.push(printableTextCommand);

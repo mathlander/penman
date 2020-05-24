@@ -365,3 +365,20 @@ export const positionCaret = (root: Element, blinkingCursor: Element) => {
     }
 };
 
+export const placeCaretAfterTextNode = (textNode: Node, blinkingCursor: Element) => {
+    if (blinkingCursor.parentElement) blinkingCursor.remove();
+    const textParent = textNode.parentElement;
+    if (!textParent) return;
+    textParent.replaceChild(blinkingCursor, textNode);
+    textParent.insertBefore(textNode, blinkingCursor);
+    // let desiredPosition = -1;
+    // for (let i = 0; i < textParent.childNodes.length; i++) {
+    //     if (textParent.childNodes[i] === textNode) {
+    //         desiredPosition = i+1;
+    //         break;
+    //     }
+    // }
+    // if (desiredPosition < 0 || desiredPosition >= textParent.childNodes.length) textParent.appendChild(blinkingCursor);
+    // else textParent.insertBefore(blinkingCursor, textParent.childNodes[desiredPosition]);
+};
+
