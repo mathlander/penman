@@ -88,7 +88,6 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
         bodyElement?.addEventListener('paste', this.handlePaste, false);
         const eventSubscription: ISubscriber = {
             keyDownHandler: this.handleKeyDown,
-            keyUpHandler: this.handleKeyUp,
         }
         this.setState({
             rootElement,
@@ -100,63 +99,6 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
     componentWillUnmount() {
         // optionally give the 'are you sure' message or fire off the save message as needed
         document.removeEventListener('selectionchange', this.handleSelectionChange, true);
-    }
-
-    handleBold = (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        // console.log(`HyperTextDiv.handleBold was invoked: ${e.currentTarget.text}`);
-        this.setState({
-            hyperTextState: {
-                ...this.state.hyperTextState,
-                isEmboldened: !this.state.hyperTextState.isEmboldened,
-            },
-            timestamp: Date.now(),
-        });
-    }
-
-    handleItalics = (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        // console.log(`HyperTextDiv.handleItalics was invoked: ${e.currentTarget.text}`);
-        this.setState({
-            hyperTextState: {
-                ...this.state.hyperTextState,
-                isItalicized: !this.state.hyperTextState.isItalicized,
-            },
-            timestamp: Date.now(),
-        });
-    }
-
-    handleUnderline = (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        // console.log(`HyperTextDiv.handleUnderline was invoked: ${e.currentTarget.text}`);
-        this.setState({
-            hyperTextState: {
-                ...this.state.hyperTextState,
-                isUnderlined: !this.state.hyperTextState.isUnderlined,
-            },
-            timestamp: Date.now(),
-        });
-    }
-
-    handleHighlight = (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        // console.log(`HyperTextDiv.handleHighlight was invoked: ${e.currentTarget.text}`);
-        this.setState({
-            hyperTextState: {
-                ...this.state.hyperTextState,
-                isHighlighted: !this.state.hyperTextState.isHighlighted,
-            },
-            timestamp: Date.now(),
-        });
-    }
-
-    handleClearFormatting = (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        // console.log(`HyperTextDiv.handleBold was invoked: ${e.currentTarget.text}`);
-        this.setState({
-            hyperTextState: defaultControlState,
-            timestamp: Date.now(),
-        });
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
@@ -240,19 +182,6 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
         }
     }
 
-    handleKeyUp = (e: KeyboardEvent) => {
-        e.preventDefault();
-        // this.updateCaretPosition();
-        // e.preventDefault();
-        // console.log(`key up captured:`, e);
-    }
-
-    handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
-        // this.updateCaretPosition();
-        //
-        // console.log(`mouse down captured:`, e);
-    }
-
     handleMouseUp = (e: MouseEvent<HTMLDivElement>) => {
         this.updateCaretPosition();
     }
@@ -293,28 +222,8 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
                 hasFocus: true,
             });
         } else if (doesElementEncapsulateSelection(this.state.rootElement)) {
-            // console.log(`selection was contained by element:`, this.state.bodyElement);
-            // const focusNode = getFocusNode(this.state.bodyElement);
-            // console.log(`focusNode:`, focusNode);
-            // console.log(computeCursorAndHyperTextState(this.state.bodyElement));
             positionCaret(this.state.bodyElement, this.state.cursor);
             const activeTextNode = this.state.cursor.previousSibling;
-
-            // focusNode?.parentElement?.replaceChild().replaceWith('foo');
-            // take the parent node
-            // clone it
-            // identify the child of at the cursor position, split it into two
-            //      and in between stuff the span.blinking-cursor element
-            // listen for keydown events
-            //      if state.hasFocus => e.preventDefault()
-            //      if a character is typed replace it in both the swap object and at the tail of the previousSibling of the span object
-            //      if left-right navigation occurs, replace the previous sibling and the next sibling, unless the current node position
-            //          has been moved beyond (except when reaching the very, very beginning)
-            //      if up-down navigation occurs, ???
-            //      if Ctrl+left-right navigation occurs, nav to previous word
-            // should probably always swap the parent node with the replacement, except in the case of continuous typing, where the
-            //      textNode.innerText can just be replaced with a concatenated string textNode.innerText += nextChar
-
             // equivalent to focus is the subscription
             subscribeToInterceptEvents(this.state.eventSubscription);
             this.setState({
@@ -333,11 +242,6 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
         })
     }
 
-    // handleBlur = (e: FocusEvent<HTMLDivElement>) => {
-    //     // remove cursor
-    //     console.log(`Blurred`);
-    // }
-
     handleInput = (e: FormEvent<HTMLDivElement>) => {
         // should this be the root element?
         this.props.update(this.state.bodyElement.innerHTML);
@@ -351,19 +255,10 @@ class HyperTextDiv extends Component<IHyperTextDivProps> {
             <div id={this.state.rootId} className="input-field" onClick={this.handleClick}>
                 <div id={this.state.bodyId}
                     className={`hypertextarea container body ${validityClass}`}
-                            // "white col s12"
                     style={{display: (this.props.innerHtml || this.state.hasFocus ? 'inline-block': 'none')}}
                     dangerouslySetInnerHTML={this.props.innerHtml ? { __html: this.props.innerHtml } : undefined}
-                    // onKeyDown={this.handleKeyDown}
-                    // onKeyUp={this.handleKeyUp}
-                    // onMouseDown={this.handleMouseDown}
-                    // onMouseUp={this.handleMouseUp}
-                    // onFocus={this.handleFocus}
-                    // onBlur={this.handleBlur}
-                    // onInput={this.handleInput}
                     />
                 <div className={`hypertextarea container body ${validityClass}`} style={{display: (this.props.innerHtml || this.state.hasFocus ? 'none' : 'inline-block')}}>
-                    {/* <span>Test<span className="blinking-cursor">|</span>ing</span> */}
                     <span>{this.props.placeholder || 'Body'}</span>
                 </div>
             </div>
