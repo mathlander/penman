@@ -14,6 +14,7 @@ namespace PenmanApi.Models
 
         public long PersonificationId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }

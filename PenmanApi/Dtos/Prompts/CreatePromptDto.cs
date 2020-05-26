@@ -10,6 +10,9 @@ namespace PenmanApi.Dtos.Prompts
         public long AuthorId { get; set; }
 
         [Required]
+        public Guid ClientId { get; set; }
+
+        [Required]
         [StringLength(100_000_000)]
         public string Body { get; set; }
 
@@ -19,7 +22,7 @@ namespace PenmanApi.Dtos.Prompts
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, Title: {Title}, Body: {Body}";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, Title: {Title}, Body: {Body}";
         }
     }
 }

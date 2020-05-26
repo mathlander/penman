@@ -100,9 +100,15 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("book");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("book_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.BookId).HasColumnName("book_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -137,11 +143,21 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("chapter");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("chapter_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.ChapterId).HasColumnName("chapter_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.Body)
+                    .IsRequired()
+                    .HasColumnName("body");
+
                 entity.Property(e => e.BookId).HasColumnName("book_id");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -153,20 +169,14 @@ namespace PenmanApi.Models
                     .HasColumnType("timestamp with time zone")
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                entity.Property(e => e.TimelineId).HasColumnName("timeline_id");
+                entity.Property(e => e.SortOrder).IsRequired().HasColumnName("sort_order");
 
-                entity.Property(e => e.SortOrder)
-                    .IsRequired()
-                    .HasColumnName("sort_order");
+                entity.Property(e => e.TimelineId).HasColumnName("timeline_id");
 
                 entity.Property(e => e.Title)
                     .IsRequired()
                     .HasColumnName("title")
                     .HasMaxLength(50);
-
-                entity.Property(e => e.Body)
-                    .IsRequired()
-                    .HasColumnName("body");
 
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.Chapter)
@@ -189,6 +199,10 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("personification");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("personification_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.PersonificationId).HasColumnName("personification_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
@@ -196,6 +210,8 @@ namespace PenmanApi.Models
                 entity.Property(e => e.Birthday)
                     .HasColumnName("birthday")
                     .HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -242,6 +258,10 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.PersonificationClientId).HasColumnName("personification_client_id");
+
+                entity.Property(e => e.TagClientId).HasColumnName("tag_client_id");
+
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.PersonificationTagJoin)
                     .HasForeignKey(d => d.AuthorId)
@@ -262,6 +282,10 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("prompt");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("prompt_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.PromptId).HasColumnName("prompt_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
@@ -269,6 +293,8 @@ namespace PenmanApi.Models
                 entity.Property(e => e.Body)
                     .IsRequired()
                     .HasColumnName("body");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -304,6 +330,10 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.PersonificationClientId).HasColumnName("personification_client_id");
+
+                entity.Property(e => e.PromptClientId).HasColumnName("prompt_client_id");
+
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.PromptPersonificationJoin)
                     .HasForeignKey(d => d.AuthorId)
@@ -332,6 +362,10 @@ namespace PenmanApi.Models
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.Property(e => e.PromptClientId).HasColumnName("prompt_client_id");
+
+                entity.Property(e => e.TagClientId).HasColumnName("tag_client_id");
 
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.PromptTagJoin)
@@ -394,6 +428,10 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("short");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("short_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.ShortId).HasColumnName("short_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
@@ -401,6 +439,8 @@ namespace PenmanApi.Models
                 entity.Property(e => e.Body)
                     .IsRequired()
                     .HasColumnName("body");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -444,6 +484,10 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.PersonificationClientId).HasColumnName("personification_client_id");
+
+                entity.Property(e => e.ShortClientId).HasColumnName("short_client_id");
+
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.ShortPersonificationJoin)
                     .HasForeignKey(d => d.AuthorId)
@@ -472,6 +516,10 @@ namespace PenmanApi.Models
                 entity.Property(e => e.PromptId).HasColumnName("prompt_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.Property(e => e.PromptClientId).HasColumnName("prompt_client_id");
+
+                entity.Property(e => e.ShortClientId).HasColumnName("short_client_id");
 
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.ShortPromptJoin)
@@ -502,6 +550,10 @@ namespace PenmanApi.Models
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
 
+                entity.Property(e => e.ShortClientId).HasColumnName("short_client_id");
+
+                entity.Property(e => e.TagClientId).HasColumnName("tag_client_id");
+
                 entity.HasOne(d => d.Author)
                     .WithMany(p => p.ShortTagJoin)
                     .HasForeignKey(d => d.AuthorId)
@@ -522,9 +574,15 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("tag");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("tag_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.TagId).HasColumnName("tag_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")
@@ -551,9 +609,15 @@ namespace PenmanApi.Models
             {
                 entity.ToTable("timeline");
 
+                entity.HasIndex(e => e.ClientId)
+                    .HasName("timeline_client_id_key")
+                    .IsUnique();
+
                 entity.Property(e => e.TimelineId).HasColumnName("timeline_id");
 
                 entity.Property(e => e.AuthorId).HasColumnName("author_id");
+
+                entity.Property(e => e.ClientId).HasColumnName("client_id");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnName("created_date")

@@ -10,6 +10,9 @@ namespace PenmanApi.Dtos.Shorts
         public long AuthorId { get; set; }
 
         [Required]
+        public Guid ClientId { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string Title { get; set; }
 
@@ -25,7 +28,7 @@ namespace PenmanApi.Dtos.Shorts
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}, Body: {Body}";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}, Body: {Body}";
         }
     }
 }

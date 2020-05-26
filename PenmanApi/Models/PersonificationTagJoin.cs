@@ -8,6 +8,8 @@ namespace PenmanApi.Models
         public long PersonificationId { get; set; }
         public long TagId { get; set; }
         public long AuthorId { get; set; }
+        public Guid PersonificationClientId { get; set; }
+        public Guid TagClientId { get; set; }
 
         public virtual Author Author { get; set; }
         public virtual Personification Personification { get; set; }

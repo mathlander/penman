@@ -72,6 +72,7 @@ FOR EACH ROW EXECUTE FUNCTION refresh_token_modified();
 CREATE TABLE IF NOT EXISTS tag (
 	tag_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	tag_name VARCHAR(50) NOT NULL,
 	created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	modified_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -100,6 +101,7 @@ FOR EACH ROW EXECUTE FUNCTION tag_modified();
 CREATE TABLE IF NOT EXISTS prompt (
 	prompt_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	body TEXT NOT NULL,
 	title VARCHAR(50) NOT NULL,
 	created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -129,6 +131,7 @@ FOR EACH ROW EXECUTE FUNCTION prompt_modified();
 CREATE TABLE IF NOT EXISTS personification (
 	personification_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	first_name VARCHAR(50) NOT NULL,
 	middle_name VARCHAR(50) NOT NULL DEFAULT '',
 	last_name VARCHAR(50) NOT NULL,
@@ -160,6 +163,7 @@ FOR EACH ROW EXECUTE FUNCTION personification_modified();
 CREATE TABLE IF NOT EXISTS short (
 	short_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	body TEXT NOT NULL,
 	title VARCHAR(50) NOT NULL,
 	event_start TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -191,6 +195,7 @@ FOR EACH ROW EXECUTE FUNCTION short_modified();
 CREATE TABLE IF NOT EXISTS timeline (
 	timeline_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	title VARCHAR(50) NOT NULL,
 	event_start TIMESTAMP WITH TIME ZONE NOT NULL,
 	event_end TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -221,6 +226,7 @@ FOR EACH ROW EXECUTE FUNCTION timeline_modified();
 CREATE TABLE IF NOT EXISTS book (
 	book_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	timeline_id BIGINT NULL,
 	title VARCHAR(50) NOT NULL,
 	created_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -253,6 +259,7 @@ FOR EACH ROW EXECUTE FUNCTION book_modified();
 CREATE TABLE IF NOT EXISTS chapter (
 	chapter_id BIGSERIAL PRIMARY KEY,
 	author_id BIGINT NOT NULL,
+	client_id UUID UNIQUE NOT NULL,
 	book_id BIGINT NOT NULL,
 	timeline_id BIGINT NULL,
 	sort_order INT NOT NULL,
@@ -292,6 +299,8 @@ CREATE TABLE IF NOT EXISTS prompt_tag_join (
 	prompt_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	prompt_client_id UUID NOT NULL,
+	tag_client_id UUID NOT NULL,
 	CONSTRAINT FK_PromptTagJoin_PromptId FOREIGN KEY (prompt_id)
 		REFERENCES prompt(prompt_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -301,6 +310,12 @@ CREATE TABLE IF NOT EXISTS prompt_tag_join (
 	CONSTRAINT FK_PromptTagJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
 		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptTagJoin_PromptClientId FOREIGN KEY (prompt_client_id)
+		REFERENCES prompt(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptTagJoin_TagClientId FOREIGN KEY (tag_client_id)
+		REFERENCES tag(client_id) MATCH FULL
+		ON DELETE CASCADE,
 	PRIMARY KEY (prompt_id, tag_id)
 );
 
@@ -308,6 +323,8 @@ CREATE TABLE IF NOT EXISTS prompt_personification_join (
 	prompt_id BIGINT NOT NULL,
 	personification_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	prompt_client_id UUID NOT NULL,
+	personification_client_id UUID NOT NULL,
 	CONSTRAINT FK_PromptPersonificationJoin_PromptId FOREIGN KEY (prompt_id)
 		REFERENCES prompt(prompt_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -317,6 +334,12 @@ CREATE TABLE IF NOT EXISTS prompt_personification_join (
 	CONSTRAINT FK_PromptPersonificationJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
 		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptPersonificationJoin_PromptClientId FOREIGN KEY (prompt_client_id)
+		REFERENCES prompt(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PromptPersonificationJoin_PersonificationClientId FOREIGN KEY (personification_client_id)
+		REFERENCES personification(client_id) MATCH FULL
+		ON DELETE CASCADE,
 	PRIMARY KEY (prompt_id, personification_id)
 );
 
@@ -324,6 +347,8 @@ CREATE TABLE IF NOT EXISTS personification_tag_join (
 	personification_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	personification_client_id UUID NOT NULL,
+	tag_client_id UUID NOT NULL,
 	CONSTRAINT FK_PersonificationTagJoin_PersonificationId FOREIGN KEY (personification_id)
 		REFERENCES personification(personification_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -333,6 +358,12 @@ CREATE TABLE IF NOT EXISTS personification_tag_join (
 	CONSTRAINT FK_PersonificationTagJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
 		ON DELETE CASCADE,
+	CONSTRAINT FK_PersonificationTagJoin_PersonificationClientId FOREIGN KEY (personification_client_id)
+		REFERENCES personification(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_PersonificationTagJoin_TagClientId FOREIGN KEY (tag_client_id)
+		REFERENCES tag(client_id) MATCH FULL
+		ON DELETE CASCADE,
 	PRIMARY KEY (personification_id, tag_id)
 );
 
@@ -340,6 +371,8 @@ CREATE TABLE IF NOT EXISTS short_personification_join (
 	short_id BIGINT NOT NULL,
 	personification_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	short_client_id UUID NOT NULL,
+	personification_client_id UUID NOT NULL,
 	CONSTRAINT FK_ShortPersonificationJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -349,6 +382,12 @@ CREATE TABLE IF NOT EXISTS short_personification_join (
 	CONSTRAINT FK_ShortPersonificationJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
 		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPersonificationJoin_ShortClientId FOREIGN KEY (short_client_id)
+		REFERENCES short(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPersonificationJoin_PersonificationClientId FOREIGN KEY (personification_client_id)
+		REFERENCES personification(client_id) MATCH FULL
+		ON DELETE CASCADE,
 	PRIMARY KEY (short_id, personification_id)
 );
 
@@ -356,6 +395,8 @@ CREATE TABLE IF NOT EXISTS short_tag_join (
 	short_id BIGINT NOT NULL,
 	tag_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	short_client_id UUID NOT NULL,
+	tag_client_id UUID NOT NULL,
 	CONSTRAINT FK_ShortTagJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -365,6 +406,12 @@ CREATE TABLE IF NOT EXISTS short_tag_join (
 	CONSTRAINT FK_ShortTagJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
 		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortTagJoin_ShortClientId FOREIGN KEY (short_client_id)
+		REFERENCES short(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortTagJoin_TagClientId FOREIGN KEY (tag_client_id)
+		REFERENCES tag(client_id) MATCH FULL
+		ON DELETE CASCADE,
 	PRIMARY KEY (short_id, tag_id)
 );
 
@@ -372,6 +419,8 @@ CREATE TABLE IF NOT EXISTS short_prompt_join (
 	short_id BIGINT NOT NULL,
 	prompt_id BIGINT NOT NULL,
 	author_id BIGINT NOT NULL,
+	short_client_id UUID NOT NULL,
+	prompt_client_id UUID NOT NULL,
 	CONSTRAINT FK_ShortPromptJoin_ShortId FOREIGN KEY (short_id)
 		REFERENCES short(short_id) MATCH FULL
 		ON DELETE CASCADE,
@@ -380,6 +429,12 @@ CREATE TABLE IF NOT EXISTS short_prompt_join (
 		ON DELETE CASCADE,
 	CONSTRAINT FK_ShortPromptJoin_AuthorId FOREIGN KEY (author_id)
 		REFERENCES author(author_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPromptJoin_ShortClientId FOREIGN KEY (short_client_id)
+		REFERENCES short(client_id) MATCH FULL
+		ON DELETE CASCADE,
+	CONSTRAINT FK_ShortPromptJoin_PromptClientId FOREIGN KEY (prompt_client_id)
+		REFERENCES prompt(client_id) MATCH FULL
 		ON DELETE CASCADE,
 	PRIMARY KEY (short_id, prompt_id)
 );

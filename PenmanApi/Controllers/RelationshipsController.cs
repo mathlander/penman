@@ -38,61 +38,80 @@ namespace PenmanApi.Controllers
             try
             {
                 var swap = 0L;
+                var guidSwap = Guid.Empty;
 
                 switch (relationshipDto.Join)
                 {
                     case "Tag-to-Personification":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Personification-to-Tag";
                     case "Personification-to-Tag":
-                        _relationshipService.RelatePersonificationTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelatePersonificationTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     case "Personification-to-Prompt":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Prompt-to-Personification";
                     case "Prompt-to-Personification":
-                        _relationshipService.RelatePromptPersonification(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelatePromptPersonification(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     case "Tag-to-Prompt":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Prompt-to-Tag";
                     case "Prompt-to-Tag":
-                        _relationshipService.RelatePromptTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelatePromptTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     case "Personification-to-Short":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Short-to-Personification";
                     case "Short-to-Personification":
-                        _relationshipService.RelateShortPersonification(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelateShortPersonification(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     case "Prompt-to-Short":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Short-to-Prompt";
                     case "Short-to-Prompt":
-                        _relationshipService.RelateShortPrompt(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelateShortPrompt(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     case "Tag-to-Short":
                         swap = relationshipDto.RightId;
+                        guidSwap = relationshipDto.RightClientId;
                         relationshipDto.RightId = relationshipDto.LeftId;
+                        relationshipDto.RightClientId = relationshipDto.LeftClientId;
                         relationshipDto.LeftId = swap;
+                        relationshipDto.LeftClientId = guidSwap;
                         goto case "Short-to-Tag";
                     case "Short-to-Tag":
-                        _relationshipService.RelateShortTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId());
+                        _relationshipService.RelateShortTag(relationshipDto.LeftId, relationshipDto.RightId, _httpContextAccessor.GetCurrentUserId(), relationshipDto.LeftClientId, relationshipDto.RightClientId);
                         break;
 
                     default:

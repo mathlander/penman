@@ -10,6 +10,9 @@ namespace PenmanApi.Dtos.Timelines
         public long AuthorId { get; set; }
 
         [Required]
+        public Guid ClientId { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string Title { get; set; }
 
@@ -21,7 +24,7 @@ namespace PenmanApi.Dtos.Timelines
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}";
         }
     }
 }

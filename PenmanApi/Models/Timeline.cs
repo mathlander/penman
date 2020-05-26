@@ -13,6 +13,7 @@ namespace PenmanApi.Models
 
         public long TimelineId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public string Title { get; set; }
         public DateTime EventStart { get; set; }
         public DateTime EventEnd { get; set; }

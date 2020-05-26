@@ -7,6 +7,7 @@ namespace PenmanApi.Dtos.Prompts
     {
         public long PromptId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -14,7 +15,7 @@ namespace PenmanApi.Dtos.Prompts
 
         public override string ToString()
         {
-            return $"PromptId: {PromptId}, AuthorId: {AuthorId}, Title: {Title}, CreatedDate: {CreatedDate}, ModifiedDate: {ModifiedDate}, Body: {Body}";
+            return $"PromptId: {PromptId}, AuthorId: {AuthorId}, ClientId: {ClientId}, Title: {Title}, CreatedDate: {CreatedDate}, ModifiedDate: {ModifiedDate}, Body: {Body}";
         }
     }
 }

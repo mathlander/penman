@@ -22,7 +22,7 @@ namespace PenmanApi.Services
             _dbContext = dbContext;
         }
 
-        public void RelatePromptTag(long promptId, long tagId, long authorId)
+        public void RelatePromptTag(long promptId, long tagId, long authorId, Guid promptClientId, Guid tagClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var promptTagJoin = new PromptTagJoin
@@ -30,12 +30,14 @@ namespace PenmanApi.Services
                 PromptId = promptId,
                 TagId = tagId,
                 AuthorId = authorId,
+                PromptClientId = promptClientId,
+                TagClientId = tagClientId,
             };
             _dbContext.PromptTagJoin.Add(promptTagJoin);
             _dbContext.SaveChanges();
         }
 
-        public void RelatePromptPersonification(long promptId, long personificationId, long authorId)
+        public void RelatePromptPersonification(long promptId, long personificationId, long authorId, Guid promptClientId, Guid personificationClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var promptPersonificationJoin = new PromptPersonificationJoin
@@ -43,12 +45,14 @@ namespace PenmanApi.Services
                 PromptId = promptId,
                 PersonificationId = personificationId,
                 AuthorId = authorId,
+                PromptClientId = promptClientId,
+                PersonificationClientId = personificationClientId,
             };
             _dbContext.PromptPersonificationJoin.Add(promptPersonificationJoin);
             _dbContext.SaveChanges();
         }
 
-        public void RelatePersonificationTag(long personificationId, long tagId, long authorId)
+        public void RelatePersonificationTag(long personificationId, long tagId, long authorId, Guid personificationClientId, Guid tagClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var personificationTagJoin = new PersonificationTagJoin
@@ -56,12 +60,14 @@ namespace PenmanApi.Services
                 PersonificationId = personificationId,
                 TagId = tagId,
                 AuthorId = authorId,
+                PersonificationClientId = personificationClientId,
+                TagClientId = tagClientId,
             };
             _dbContext.PersonificationTagJoin.Add(personificationTagJoin);
             _dbContext.SaveChanges();
         }
 
-        public void RelateShortPersonification(long shortId, long personificationId, long authorId)
+        public void RelateShortPersonification(long shortId, long personificationId, long authorId, Guid shortClientId, Guid personificationClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var shortPersonificationJoin = new ShortPersonificationJoin
@@ -69,12 +75,14 @@ namespace PenmanApi.Services
                 ShortId = shortId,
                 PersonificationId = personificationId,
                 AuthorId = authorId,
+                ShortClientId = shortClientId,
+                PersonificationClientId = personificationClientId,
             };
             _dbContext.ShortPersonificationJoin.Add(shortPersonificationJoin);
             _dbContext.SaveChanges();
         }
 
-        public void RelateShortTag(long shortId, long tagId, long authorId)
+        public void RelateShortTag(long shortId, long tagId, long authorId, Guid shortClientId, Guid tagClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var shortTagJoin = new ShortTagJoin
@@ -82,12 +90,14 @@ namespace PenmanApi.Services
                 ShortId = shortId,
                 TagId = tagId,
                 AuthorId = authorId,
+                ShortClientId = shortClientId,
+                TagClientId = tagClientId,
             };
             _dbContext.ShortTagJoin.Add(shortTagJoin);
             _dbContext.SaveChanges();
         }
 
-        public void RelateShortPrompt(long shortId, long promptId, long authorId)
+        public void RelateShortPrompt(long shortId, long promptId, long authorId, Guid shortClientId, Guid promptClientId)
         {
             // with no return value, allow any potential exceptions to bubble up
             var shortPromptJoin = new ShortPromptJoin
@@ -95,6 +105,8 @@ namespace PenmanApi.Services
                 ShortId = shortId,
                 PromptId = promptId,
                 AuthorId = authorId,
+                ShortClientId = shortClientId,
+                PromptClientId = promptClientId
             };
             _dbContext.ShortPromptJoin.Add(shortPromptJoin);
             _dbContext.SaveChanges();

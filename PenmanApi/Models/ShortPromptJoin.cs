@@ -8,6 +8,8 @@ namespace PenmanApi.Models
         public long ShortId { get; set; }
         public long PromptId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ShortClientId { get; set; }
+        public Guid PromptClientId { get; set; }
 
         public virtual Author Author { get; set; }
         public virtual Prompt Prompt { get; set; }

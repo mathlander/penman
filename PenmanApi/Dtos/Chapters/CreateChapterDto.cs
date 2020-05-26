@@ -12,6 +12,9 @@ namespace PenmanApi.Dtos.Chapters
         [Required]
         public long BookId { get; set; }
 
+        [Required]
+        public Guid ClientId { get; set; }
+
         public long? TimelineId { get; set; }
 
         [Required]
@@ -27,7 +30,7 @@ namespace PenmanApi.Dtos.Chapters
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, BookId: {BookId}, TimelineId: {TimelineId}, SortOrder: {SortOrder}, Title: {Title}, Body: [{Body.Length} characters]";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, BookId: {BookId}, TimelineId: {TimelineId}, SortOrder: {SortOrder}, Title: {Title}, Body: [{Body.Length} characters]";
         }
     }
 }

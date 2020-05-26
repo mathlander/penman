@@ -14,6 +14,7 @@ namespace PenmanApi.Models
 
         public long TagId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public string TagName { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }

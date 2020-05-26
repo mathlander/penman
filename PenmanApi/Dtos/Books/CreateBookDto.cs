@@ -9,6 +9,9 @@ namespace PenmanApi.Dtos.Books
         [Required]
         public long AuthorId { get; set; }
 
+        [Required]
+        public Guid ClientId { get; set; }
+
         public long? TimelineId { get; set; }
 
         [Required]
@@ -17,7 +20,7 @@ namespace PenmanApi.Dtos.Books
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, TimelineId: {TimelineId}, Title: {Title}";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, TimelineId: {TimelineId}, Title: {Title}";
         }
     }
 }

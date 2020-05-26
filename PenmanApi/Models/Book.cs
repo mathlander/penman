@@ -12,6 +12,7 @@ namespace PenmanApi.Models
 
         public long BookId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public long? TimelineId { get; set; }
         public string Title { get; set; }
         public DateTime CreatedDate { get; set; }

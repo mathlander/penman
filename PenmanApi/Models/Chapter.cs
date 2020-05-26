@@ -7,6 +7,7 @@ namespace PenmanApi.Models
     {
         public long ChapterId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public long BookId { get; set; }
         public long? TimelineId { get; set; }
         public int SortOrder { get; set; }

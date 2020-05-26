@@ -7,7 +7,8 @@ namespace PenmanApi.Dtos.Shorts
     {
         public long ShortId { get; set; }
         public long AuthorId { get; set; }
-        public string Title { get; set; }
+        public Guid ClientId { get; set; }
+       public string Title { get; set; }
         public string Body { get; set; }
         public DateTime EventStart { get; set; }
         public DateTime EventEnd { get; set; }
@@ -16,7 +17,7 @@ namespace PenmanApi.Dtos.Shorts
 
         public override string ToString()
         {
-            return $"ShortId: {ShortId}, AuthorId: {AuthorId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}, CreatedDate: {CreatedDate}, ModifiedDate: {ModifiedDate}, Body: {Body}";
+            return $"ShortId: {ShortId}, AuthorId: {AuthorId}, ClientId: {ClientId}, Title: {Title}, EventStart: {EventStart}, EventEnd: {EventEnd}, CreatedDate: {CreatedDate}, ModifiedDate: {ModifiedDate}, Body: {Body}";
         }
     }
 }

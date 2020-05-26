@@ -16,9 +16,15 @@ namespace PenmanApi.Dtos.Relationships
         [Required]
         public long RightId { get; set; }
 
+        [Required]
+        public Guid LeftClientId { get; set; }
+
+        [Required]
+        public Guid RightClientId { get; set; }
+
         public override string ToString()
         {
-            return $"Join: {Join}, LeftId: {LeftId}, RightId: {RightId}";
+            return $"Join: {Join}, LeftId: {LeftId}, RightId: {RightId}, LeftClientId: {LeftClientId}, RightClientId: {RightClientId}";
         }
     }
 }

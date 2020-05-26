@@ -10,6 +10,9 @@ namespace PenmanApi.Dtos.Personifications
         public long AuthorId { get; set; }
 
         [Required]
+        public Guid ClientId { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string FirstName { get; set; }
 
@@ -26,7 +29,7 @@ namespace PenmanApi.Dtos.Personifications
 
         public override string ToString()
         {
-            return $"AuthorId: {AuthorId}, FirstName: {FirstName}, MiddleName: {MiddleName}, LastName: {LastName}, Birthday: {Birthday}";
+            return $"AuthorId: {AuthorId}, ClientId: {ClientId}, FirstName: {FirstName}, MiddleName: {MiddleName}, LastName: {LastName}, Birthday: {Birthday}";
         }
     }
 }

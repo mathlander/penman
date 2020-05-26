@@ -14,6 +14,7 @@ namespace PenmanApi.Models
 
         public long ShortId { get; set; }
         public long AuthorId { get; set; }
+        public Guid ClientId { get; set; }
         public string Body { get; set; }
         public string Title { get; set; }
         public DateTime EventStart { get; set; }
