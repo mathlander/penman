@@ -1,5 +1,6 @@
 import { authConstants, offlineConstants } from '../../config/constants';
 import { IAuthenticatedUser, IAuthenticationErrorState, IAuthenticationState, IAuthReducerAction } from '../types';
+import { AuthActionMemento } from '../actions/authActions';
 
 export const expiredUser: IAuthenticatedUser = {
     token: '',
@@ -22,18 +23,22 @@ export const nullErrorState: IAuthenticationErrorState = {
 };
 
 const readLocalStorage = () : IAuthenticationState => {
-    let localStorageState = JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null') || {
+    let localStorageState: IAuthenticationState = JSON.parse(localStorage.getItem(authConstants.AUTH_LOCAL_STORAGE_KEY) || 'null', (key: string, value: any) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => AuthActionMemento.hydrate(memento));
+        } else if (key === 'authenticatedUser') {
+            value.tokenExpirationDate = new Date(value.tokenExpirationDate);
+            value.refreshTokenExpirationDate = new Date(value.refreshTokenExpirationDate);
+            value.createdDate = new Date(value.createdDate);
+            value.modifiedDate = new Date(value.modifiedDate);
+        }
+        return value;
+    }) || {
         authenticatedUser: expiredUser,
         authErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
     };
-    if (localStorageState.authenticatedUser) {
-        localStorageState.authenticatedUser.tokenExpirationDate = new Date(localStorageState.authenticatedUser.tokenExpirationDate);
-        localStorageState.authenticatedUser.refreshTokenExpirationDate = new Date(localStorageState.authenticatedUser.refreshTokenExpirationDate);
-        localStorageState.authenticatedUser.createdDate = new Date(localStorageState.authenticatedUser.createdDate);
-        localStorageState.authenticatedUser.modifiedDate = new Date(localStorageState.authenticatedUser.modifiedDate);
-    }
     return localStorageState;
 };
 
@@ -41,8 +46,8 @@ const updateLocalStorage = (state: IAuthenticationState) : void => {
     localStorage.setItem(authConstants.AUTH_LOCAL_STORAGE_KEY, JSON.stringify({
         authenticatedUser: state.authenticatedUser,
         authErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
     }));
 };
 
@@ -60,10 +65,12 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
             return nextState;
 
         case authConstants.LOGIN:
-            return {
+            nextState = {
                 ...state,
-                pendingActions: [...state.pendingActions, action],
+                pendingActions: [...state.pendingActions],
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            return nextState;
         case authConstants.LOGIN_SUCCESS:
             const authenticatedUser: IAuthenticatedUser = action.payload;
             nextState = {
@@ -97,9 +104,10 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
         case authConstants.REFRESH_TOKEN:
             nextState = {
                 ...state,
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             return nextState;
         case authConstants.REFRESH_TOKEN_SUCCESS:
             const refreshedUser: IAuthenticatedUser = action.payload;
@@ -133,16 +141,18 @@ const authReducer = (state: IAuthenticationState = initState, action: IAuthReduc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => !queuedAction.type.startsWith(authConstants.REFRESH_TOKEN)).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => !queuedAction.type.startsWith(authConstants.REFRESH_TOKEN)),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case authConstants.CREATE_NEW_USER:
             nextState = {
                 ...state,
-                pendingActions: [...state.pendingActions, action],
+                pendingActions: [...state.pendingActions],
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             return nextState;
         case authConstants.CREATE_NEW_USER_SUCCESS:
             const createdUser: IAuthenticatedUser = action.payload;

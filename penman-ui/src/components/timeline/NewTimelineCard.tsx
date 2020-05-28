@@ -1,6 +1,6 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { IRootState, IAuthenticatedUser, ITimeline } from '../../store/types';
+import { IRootState, Timeline, generateUuid } from '../../store/types';
 import { create } from '../../store/actions/timelineActions';
 
 const mapStateToProps = (state: IRootState) => {
@@ -11,13 +11,7 @@ const mapStateToProps = (state: IRootState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        create: (user: IAuthenticatedUser, newTimeline: ITimeline, suppressTimeoutAlert: boolean) => dispatch(create(user, newTimeline, suppressTimeoutAlert)),
-    };
-};
-
-const localConnector = connect(mapStateToProps, mapDispatchToProps);
+const localConnector = connect(mapStateToProps);
 const now = new Date();
 
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
@@ -85,7 +79,7 @@ class NewTimelineCard extends Component<Props> {
         e.preventDefault();
         const timestamp = Date.now();
         if (this.state.title.length) {
-            this.props.create(this.props.authenticatedUser, {
+            const newTimeline = new Timeline({
                 title: this.state.title,
                 eventStart: this.state.eventStart,
                 eventEnd: this.state.eventEnd,
@@ -93,7 +87,9 @@ class NewTimelineCard extends Component<Props> {
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
                 timelineId: -timestamp,
-            }, this.props.isOffline);
+                clientId: generateUuid(),
+            });
+            create(this.props.authenticatedUser, newTimeline, this.props.isOffline);
         }
         const newNow = new Date();
         const { eventStartInputElement, eventEndInputElement } = this.state;

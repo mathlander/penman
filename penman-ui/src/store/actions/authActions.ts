@@ -1,77 +1,102 @@
 import axios, { AxiosRequestConfig } from 'axios';
+import { useDispatch } from 'react-redux';
 import { apiConstants, authConstants, offlineConstants } from '../../config/constants';
-import { IAuthenticatedUser, IAuthenticationErrorState, IAuthCredentials, INewUser } from '../types';
+import { IAuthenticatedUser, IAuthenticationErrorState, IAuthCredentials, INewUser, IReplayableAction } from '../types';
 
-export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert: boolean, refresh: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => any): boolean => {
+export class AuthActionMemento implements IReplayableAction {
+    public type: string;
+    public timestamp: number;
+    public serializedData: string;
+
+    constructor(type: string, timestamp: number) {
+        this.type = type;
+        this.timestamp = timestamp;
+        this.serializedData = AuthActionMemento.dehydrate(this);
+    }
+
+    static hydrate(memento: string) {
+        const restoredMemento = JSON.parse(memento);
+        return new AuthActionMemento(restoredMemento.type, restoredMemento.timestamp);
+    }
+
+    static dehydrate(actionMemento: AuthActionMemento) {
+        const serializedMemento = JSON.stringify({
+            type: actionMemento.type,
+            timestamp: actionMemento.timestamp,
+        });
+        return serializedMemento;
+    }
+
+    public playAction(user:IAuthenticatedUser, suppressTimeoutAlert: boolean) {
+        switch(this.type) {
+            case authConstants.REFRESH_TOKEN:
+                this.refresh(user, suppressTimeoutAlert);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public refresh(user: IAuthenticatedUser, suppressTimeoutAlert: boolean) {
+        const dispatch = useDispatch();
+        const url = `${apiConstants.usersController}/refresh`;
+        const data = {
+            refreshToken: user.refreshToken,
+        };
+        const config: AxiosRequestConfig = {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            timeout: apiConstants.timeout,
+        };
+        dispatch({ type: authConstants.REFRESH_TOKEN, timestamp: this.timestamp, suppressTimeoutAlert, memento: this });
+        axios.post(
+            url,
+            data,
+            config
+        ).then((response) => {
+            const refreshResponseDto: IAuthenticatedUser = response.data;
+            refreshResponseDto.tokenExpirationDate = new Date(response.data.tokenExpirationDate);
+            refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
+            refreshResponseDto.createdDate = new Date(response.data.createdDate);
+            refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
+            dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp: this.timestamp, suppressTimeoutAlert, memento: this });
+        }).catch((err) => {
+            if (err.code === 'ECONNABORTED' || err.response === undefined) {
+                // timed out or the API wasn't running
+                const error: IAuthenticationErrorState = {
+                    internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
+                    displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
+                };
+                dispatch({ type: authConstants.REFRESH_TOKEN_TIMEOUT, error, timestamp: this.timestamp, suppressTimeoutAlert });
+                dispatch({ type: offlineConstants.GO_OFFLINE, timestamp: this.timestamp, suppressTimeoutAlert });
+            } else {
+                // api returned a response... should only happen if refresh token somehow fails to process
+                const error: IAuthenticationErrorState = {
+                    internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
+                    displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
+                }
+                dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp: this.timestamp, suppressTimeoutAlert, memento: this });
+            }
+        });
+    }
+}
+
+export const isAuthTokenExpired = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert: boolean): boolean => {
     const now = Date.now();
     if (authenticatedUser.refreshTokenExpirationDate.getTime() < now) {
         return true;
     } else if (authenticatedUser.tokenExpirationDate.getTime() < now) {
         // fall-back on refreshToken
-        refresh(authenticatedUser, suppressTimeoutAlert);
+        refreshToken(authenticatedUser, suppressTimeoutAlert);
     }
     return false;
 };
 
 export const refreshToken = (authenticatedUser: IAuthenticatedUser, suppressTimeoutAlert = false) => {
-    /**
-     * In order to take advantage of this feature, this method will need to be
-     * bound to a connected component's properties.  For example:
-     * 
-     *      componentDidMount() {
-     *          if (this.props.isAuthTokenExpired(this.props.authenticatedUser)) {
-     *              this.props.refreshToken(this.props.authenticatedUser)
-     *          }
-     *      }
-     */
-    return (dispatch: any) => {
-        const timestamp = Date.now();
-        const memento = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => {
-            const url = `${apiConstants.usersController}/refresh`;
-            const data = {
-                refreshToken: authenticatedUser.refreshTokenExpirationDate.getTime() >= user.refreshTokenExpirationDate.getTime()
-                    ? authenticatedUser.refreshToken
-                    : user.refreshToken,
-            };
-            const config: AxiosRequestConfig = {
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                timeout: apiConstants.timeout,
-            };
-            dispatch({ type: authConstants.REFRESH_TOKEN, timestamp, suppressTimeoutAlert, memento });
-            axios.post(
-                url,
-                data,
-                config
-            ).then((response) => {
-                const refreshResponseDto: IAuthenticatedUser = response.data;
-                refreshResponseDto.tokenExpirationDate = new Date(response.data.tokenExpirationDate);
-                refreshResponseDto.refreshTokenExpirationDate = new Date(response.data.refreshTokenExpirationDate);
-                refreshResponseDto.createdDate = new Date(response.data.createdDate);
-                refreshResponseDto.modifiedDate = new Date(response.data.modifiedDate);
-                dispatch({ type: authConstants.REFRESH_TOKEN_SUCCESS, payload: refreshResponseDto, timestamp, suppressTimeoutAlert, memento });
-            }).catch((err) => {
-                if (err.code === 'ECONNABORTED' || err.response === undefined) {
-                    // timed out or the API wasn't running
-                    const error: IAuthenticationErrorState = {
-                        internalErrorMessage: offlineConstants.API_UNREACHABLE_INTERNAL_MESSAGE,
-                        displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
-                    };
-                    dispatch({ type: authConstants.REFRESH_TOKEN_TIMEOUT, error, timestamp, suppressTimeoutAlert });
-                    dispatch({ type: offlineConstants.GO_OFFLINE, timestamp, suppressTimeoutAlert });
-                } else {
-                    // api returned a response... should only happen if refresh token somehow fails to process
-                    const error: IAuthenticationErrorState = {
-                        internalErrorMessage: `Received the following error while attempting to authenticate the user with the refresh token: ${err}`,
-                        displayErrorMessage: `An authentication error occurred.  Return to login screen and try again.`
-                    }
-                    dispatch({ type: authConstants.REFRESH_TOKEN_ERROR, error: error, timestamp, suppressTimeoutAlert, memento });
-                }
-            });
-        };
-        memento(authenticatedUser, suppressTimeoutAlert);
-    };
+    const timestamp = Date.now();
+    const memento = new AuthActionMemento(authConstants.REFRESH_TOKEN, timestamp);
+    memento.refresh(authenticatedUser, suppressTimeoutAlert);
 };
 
 export const signIn = (credentials: IAuthCredentials) => {

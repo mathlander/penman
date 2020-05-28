@@ -4,50 +4,14 @@ import { IRootState, IAuthenticatedUser, IReplayableAction } from '../../store/t
 import { replayMementos, ping } from '../../store/actions/offlineActions';
 
 const mapStateToProps = (state: IRootState) => {
-    const mergedActions: IReplayableAction[] = [];
-    state.book.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.chapter.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.personification.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.prompt.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.short.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.timeline.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-    state.timeline.offlineActionQueue
-        .forEach(action => mergedActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-
-    const refreshActions: IReplayableAction[] = [];
-    state.auth.offlineActionQueue
-        .forEach(action => refreshActions.push({
-            memento: action.memento || ((user: IAuthenticatedUser, suppressTimeout: boolean) => {}),
-            timestamp: action.timestamp,
-        }));
-
+    const mergedActions: IReplayableAction[] = state.book.offlineActionQueue
+        .concat(state.chapter.offlineActionQueue)
+        .concat(state.personification.offlineActionQueue)
+        .concat(state.prompt.offlineActionQueue)
+        .concat(state.short.offlineActionQueue)
+        .concat(state.timeline.offlineActionQueue)
+        .concat(state.timeline.offlineActionQueue)
+    const refreshActions: IReplayableAction[] = state.auth.offlineActionQueue;
     return {
         user: state.auth.authenticatedUser,
         isOffline: state.offline.isOffline,

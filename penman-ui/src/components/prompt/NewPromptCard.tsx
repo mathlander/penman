@@ -1,7 +1,9 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { IRootState, IAuthenticatedUser, IPrompt } from '../../store/types';
+import M from 'materialize-css';
+import { IRootState, Prompt, generateUuid } from '../../store/types';
 import { create } from '../../store/actions/promptActions';
+// import { relate, deleteEntity } from '../../store/actions/relationshipActions';
 
 const mapStateToProps = (state: IRootState) => {
     return {
@@ -11,13 +13,7 @@ const mapStateToProps = (state: IRootState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        create: (user: IAuthenticatedUser, newPrompt: IPrompt, suppressTimeoutAlert: boolean) => dispatch(create(user, newPrompt, suppressTimeoutAlert)),
-    };
-};
-
-const localConnector = connect(mapStateToProps, mapDispatchToProps);
+const localConnector = connect(mapStateToProps);
 
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
@@ -58,7 +54,7 @@ class NewPromptCard extends Component<Props> {
 
     handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
         this.setState({
-            [e.target.id]: e.target.value
+            [e.target.id]: e.target.value,
         });
     }
 
@@ -66,14 +62,16 @@ class NewPromptCard extends Component<Props> {
         e.preventDefault();
         const timestamp = Date.now();
         if (this.state.body.length && this.state.title.length) {
-            this.props.create(this.props.authenticatedUser, {
+            const newPrompt = new Prompt({
                 title: this.state.title,
                 body: this.state.body,
                 authorId: this.props.authenticatedUser.authorId,
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
-                promptId: -timestamp,
-            }, this.props.isOffline);
+                promptId: 0,
+                clientId: generateUuid(),
+            });
+            create(this.props.authenticatedUser, newPrompt, this.props.isOffline);
         }
         this.setState({
             title: '',

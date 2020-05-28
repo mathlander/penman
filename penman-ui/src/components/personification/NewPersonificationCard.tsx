@@ -1,6 +1,6 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { IRootState, IAuthenticatedUser, IPersonification } from '../../store/types';
+import { IRootState, Personification, generateUuid } from '../../store/types';
 import { create } from '../../store/actions/personificationActions';
 
 const mapStateToProps = (state: IRootState) => {
@@ -11,13 +11,7 @@ const mapStateToProps = (state: IRootState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        create: (user: IAuthenticatedUser, newPersonification: IPersonification, suppressTimeoutAlert: boolean) => dispatch(create(user, newPersonification, suppressTimeoutAlert)),
-    };
-};
-
-const localConnector = connect(mapStateToProps, mapDispatchToProps);
+const localConnector = connect(mapStateToProps);
 const now = new Date();
 
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
@@ -90,7 +84,7 @@ class NewPersonificationCard extends Component<Props> {
         e.preventDefault();
         const timestamp = Date.now();
         if (this.state.firstName.length || this.state.lastName.length) {
-            this.props.create(this.props.authenticatedUser, {
+            const newPersonification = new Personification({
                 firstName: this.state.firstName,
                 middleName: this.state.middleName,
                 lastName: this.state.lastName,
@@ -99,7 +93,9 @@ class NewPersonificationCard extends Component<Props> {
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
                 personificationId: -timestamp,
-            }, this.props.isOffline);
+                clientId: generateUuid(),
+            });
+            create(this.props.authenticatedUser, newPersonification, this.props.isOffline);
         }
         const newNow = new Date();
         const { birthdayInputElement } = this.state;

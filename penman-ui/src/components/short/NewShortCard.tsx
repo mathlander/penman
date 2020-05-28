@@ -1,6 +1,6 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { IRootState, IAuthenticatedUser, IShort } from '../../store/types';
+import { IRootState, Short, generateUuid } from '../../store/types';
 import { create } from '../../store/actions/shortActions';
 
 const mapStateToProps = (state: IRootState) => {
@@ -11,13 +11,7 @@ const mapStateToProps = (state: IRootState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        create: (user: IAuthenticatedUser, newShort: IShort, suppressTimeoutAlert: boolean) => dispatch(create(user, newShort, suppressTimeoutAlert)),
-    };
-};
-
-const localConnector = connect(mapStateToProps, mapDispatchToProps);
+const localConnector = connect(mapStateToProps);
 const now = new Date();
 
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
@@ -105,7 +99,7 @@ class NewShortCard extends Component<Props> {
         e.preventDefault();
         const timestamp = Date.now();
         if (this.state.body.length && this.state.title.length) {
-            this.props.create(this.props.authenticatedUser, {
+            const newShort = new Short({
                 title: this.state.title,
                 body: this.state.body,
                 eventStart: this.state.eventStart,
@@ -114,7 +108,9 @@ class NewShortCard extends Component<Props> {
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
                 shortId: -timestamp,
-            }, this.props.isOffline);
+                clientId: generateUuid(),
+            });
+            create(this.props.authenticatedUser, newShort, this.props.isOffline);
         }
         const newNow = new Date();
         const { eventStartInputElement, eventEndInputElement } = this.state;

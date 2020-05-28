@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import M from 'materialize-css';
-import { IRootState, IAuthenticatedUser, INewBook, IBook } from '../../store/types';
-import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
-import { create, read, readAll, update, deleteEntity } from '../../store/actions/bookActions';
+import { IRootState } from '../../store/types';
+import { isAuthTokenExpired } from '../../store/actions/authActions';
+import { readAll } from '../../store/actions/bookActions';
 import { visitRecentItemClear } from '../../store/actions/dashboardActions';
 import { defaultDate, bookConstants } from '../../config/constants';
 import NewBookCard from './NewBookCard';
@@ -27,15 +27,8 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
-    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
         visitRecentItemClear: () => dispatch(visitRecentItemClear()),
-        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
-        create: (user: IAuthenticatedUser, newBook: INewBook, suppressTimeoutAlert: boolean) => dispatch(create(user, newBook, suppressTimeoutAlert)),
-        read: (user: IAuthenticatedUser, bookId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, bookId, suppressTimeoutAlert)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
-        update: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => dispatch(update(user, book, suppressTimeoutAlert)),
-        deleteEntity: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, book, suppressTimeoutAlert)),
     };
 };
 
@@ -60,7 +53,7 @@ class BooksPage extends Component<Props> {
     }
 
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
+        readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
         const scrollspied = document.querySelectorAll('.scrollspy');
         const scrollspyInstances = M.ScrollSpy.init(scrollspied, {
             scrollOffset: 35,
@@ -79,9 +72,9 @@ class BooksPage extends Component<Props> {
     }
 
     render() {
-        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        const { authenticatedUser, isOffline } = this.props;
         const loaderDisplayStyle = (this.props.isLoading && this.props.booksCount === 0 ? 'block' : 'none');
-        if (isTokenExpired(authenticatedUser, isOffline)) {
+        if (isAuthTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         const readTimelineById = (timelineId: number | null) => (timelineId === null ? null : this.props.timelines[timelineId]);
@@ -107,9 +100,6 @@ class BooksPage extends Component<Props> {
                                 user={authenticatedUser}
                                 isOffline={isOffline}
                                 chapters={Object.values(this.props.chapters).filter(chapter => chapter.bookId === book.bookId)}
-                                update={this.props.update}
-                                deleteEntity={this.props.deleteEntity}
-                                readTimelineById={readTimelineById}
                             />
                         )}
                     </div>

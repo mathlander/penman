@@ -1,5 +1,6 @@
 import { defaultDate, chapterConstants, offlineConstants } from '../../config/constants';
-import { IChapter, IChapterCollection, IChapterState, IChapterErrorState, IChapterReducerAction } from '../types';
+import { Chapter, UUID, IChapterState, IChapterErrorState, IChapterReducerAction, restoreOfflineWorkItemFromJSON } from '../types';
+import { ChapterActionMemento } from '../actions/chapterActions';
 
 const nullErrorState: IChapterErrorState = {
     internalErrorMessage: null,
@@ -7,27 +8,38 @@ const nullErrorState: IChapterErrorState = {
 };
 
 const readLocalStorage = () : IChapterState => {
-    let localStorageState: IChapterState = JSON.parse(localStorage.getItem(chapterConstants.CHAPTER_LOCAL_STORAGE_KEY) || 'null') || {
+    let clientIdLookup: Record<UUID, Chapter> = {};
+    let localStorageState: IChapterState = JSON.parse(localStorage.getItem(chapterConstants.CHAPTER_LOCAL_STORAGE_KEY) || 'null', (key, value) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => ChapterActionMemento.hydrate(memento));
+        } else if (key === 'chapters') {
+            const chapterRecords: Record<number, Chapter> = value.reduce((map: Record<number, Chapter>, serializedObj: string) => {
+                const chapter = restoreOfflineWorkItemFromJSON<Chapter>(serializedObj, Chapter);
+                clientIdLookup[chapter.clientId] = chapter;
+                return map[chapter.chapterId] = chapter;
+            }, {});
+            return chapterRecords;
+        } else if (key === '') {
+            value.clientIdLookup = clientIdLookup;
+        } else return value;
+    }) || {
+        clientIdLookup: {},
         chapters: {},
         chapterErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
-    Object.values(localStorageState.chapters).forEach((chapter) => {
-        chapter.createdDate = new Date(chapter.createdDate);
-        chapter.modifiedDate = new Date(chapter.modifiedDate);
-    });
     localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
 const updateLocalStorage = (state: IChapterState) : void => {
     localStorage.setItem(chapterConstants.CHAPTER_LOCAL_STORAGE_KEY, JSON.stringify({
-        chapters: state.chapters,
+        chapters: Object.values(state.chapters).map(chapter => chapter.toSerializedJSON()),
         chapterErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -46,17 +58,21 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             return nextState;
 
         case chapterConstants.CREATE_NEW_CHAPTER:
-            const pendingNewChapter: IChapter = action.payload;
+            const pendingNewChapter: Chapter = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingNewChapter.clientId]: pendingNewChapter,
+                },
                 chapters: {
                     ...state.chapters,
                     [-action.timestamp]: pendingNewChapter,
                 },
-                // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.CREATE_NEW_CHAPTER_ERROR:
@@ -72,9 +88,13 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             return nextState;
         case chapterConstants.CREATE_NEW_CHAPTER_SUCCESS:
             // consider persisting IChapter objects in localStorage, they're light and rare (per author)
-            const newChapter: IChapter = action.payload;
+            const newChapter: Chapter = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [newChapter.clientId]: newChapter,
+                },
                 chapters: {
                     ...state.chapters,
                     [newChapter.chapterId]: newChapter,
@@ -95,19 +115,22 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case chapterConstants.DELETE_CHAPTER:
-            const deletedChapter: IChapter = action.payload;
+            const deletedChapter: Chapter = action.payload;
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            delete nextState.clientIdLookup[deletedChapter.chapterId];
             delete nextState.chapters[deletedChapter.chapterId];
             updateLocalStorage(nextState);
             return nextState;
@@ -140,8 +163,9 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -149,9 +173,10 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.READ_ALL_CHAPTERS_ERROR:
@@ -166,9 +191,12 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.READ_ALL_CHAPTERS_SUCCESS:
-            const chapterCollection: IChapterCollection = action.payload;
+            const chapterCollection: Chapter[] = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                },
                 chapters: {
                     ...state.chapters
                 },
@@ -176,7 +204,8 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 lastReadAll: new Date(action.timestamp),
             };
-            chapterCollection.chapters.forEach(chapter => {
+            chapterCollection.forEach(chapter => {
+                nextState.clientIdLookup[chapter.clientId] = chapter;
                 nextState.chapters[chapter.chapterId] = chapter;
             });
             updateLocalStorage(nextState);
@@ -191,8 +220,9 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -200,9 +230,10 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.READ_CHAPTER_ERROR:
@@ -217,9 +248,13 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.READ_CHAPTER_SUCCESS:
-            const retrievedChapter: IChapter = action.payload;
+            const retrievedChapter: Chapter = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [retrievedChapter.clientId]: retrievedChapter,
+                },
                 chapters: {
                     ...state.chapters,
                     [retrievedChapter.chapterId]: retrievedChapter,
@@ -239,23 +274,29 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case chapterConstants.UPDATE_CHAPTER:
-            const pendingUpdatedChapter: IChapter = action.payload;
+            const pendingUpdatedChapter: Chapter = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingUpdatedChapter.clientId]: pendingUpdatedChapter,
+                },
                 chapters: {
                     ...state.chapters,
                     [pendingUpdatedChapter.chapterId]: pendingUpdatedChapter,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.UPDATE_CHAPTER_ERROR:
@@ -270,9 +311,13 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
             updateLocalStorage(nextState);
             return nextState;
         case chapterConstants.UPDATE_CHAPTER_SUCCESS:
-            const updatedChapter: IChapter = action.payload;
+            const updatedChapter: Chapter = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [updatedChapter.clientId]: updatedChapter,
+                },
                 chapters: {
                     ...state.chapters,
                     [updatedChapter.chapterId]: updatedChapter,
@@ -292,8 +337,9 @@ const chapterReducer = (state: IChapterState = initState, action: IChapterReduce
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 

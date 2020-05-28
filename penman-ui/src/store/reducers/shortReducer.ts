@@ -1,5 +1,6 @@
 import { defaultDate, shortConstants, offlineConstants } from '../../config/constants';
-import { IShort, IShortCollection, IShortState, IShortErrorState, IShortReducerAction } from '../types';
+import { Short, UUID, IShortState, IShortErrorState, IShortReducerAction, restoreOfflineWorkItemFromJSON } from '../types';
+import { ShortActionMemento } from '../actions/shortActions';
 
 const nullErrorState: IShortErrorState = {
     internalErrorMessage: null,
@@ -7,29 +8,38 @@ const nullErrorState: IShortErrorState = {
 };
 
 const readLocalStorage = () : IShortState => {
-    let localStorageState: IShortState = JSON.parse(localStorage.getItem(shortConstants.SHORT_LOCAL_STORAGE_KEY) || 'null') || {
+    let clientIdLookup: Record<UUID, Short> = {};
+    let localStorageState: IShortState = JSON.parse(localStorage.getItem(shortConstants.SHORT_LOCAL_STORAGE_KEY) || 'null', (key, value) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => ShortActionMemento.hydrate(memento));
+        } else if (key === 'shorts') {
+            const shortRecords: Record<number, Short> = value.reduce((map: Record<number, Short>, serializedObj: string) => {
+                const short = restoreOfflineWorkItemFromJSON<Short>(serializedObj, Short);
+                clientIdLookup[short.clientId] = short;
+                return map[short.shortId] = short;
+            }, {});
+            return shortRecords;
+        } else if (key === '') {
+            value.clientIdLookup = clientIdLookup;
+        } else return value;
+    }) || {
+        clientIdLookup: {},
         shorts: {},
         shortErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
-    Object.values(localStorageState.shorts).forEach((short) => {
-        short.eventStart = new Date(short.eventStart);
-        short.eventEnd = new Date(short.eventEnd);
-        short.createdDate = new Date(short.createdDate);
-        short.modifiedDate = new Date(short.modifiedDate);
-    });
     localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
 const updateLocalStorage = (state: IShortState) : void => {
     localStorage.setItem(shortConstants.SHORT_LOCAL_STORAGE_KEY, JSON.stringify({
-        shorts: state.shorts,
+        shorts: Object.values(state.shorts).map(short => short.toSerializedJSON()),
         shortErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -48,17 +58,22 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             return nextState;
 
         case shortConstants.CREATE_NEW_SHORT:
-            const pendingNewShort: IShort = action.payload;
+            const pendingNewShort: Short = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingNewShort.clientId]: pendingNewShort,
+                },
                 shorts: {
                     ...state.shorts,
                     [-action.timestamp]: pendingNewShort,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.CREATE_NEW_SHORT_ERROR:
@@ -74,9 +89,13 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             return nextState;
         case shortConstants.CREATE_NEW_SHORT_SUCCESS:
             // consider persisting IShort objects in localStorage, they're light and rare (per author)
-            const newShort: IShort = action.payload;
+            const newShort: Short = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [newShort.clientId]: newShort,
+                },
                 shorts: {
                     ...state.shorts,
                     [newShort.shortId]: newShort,
@@ -97,19 +116,22 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case shortConstants.DELETE_SHORT:
-            const deletedShort: IShort = action.payload;
+            const deletedShort: Short = action.payload;
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            delete nextState.clientIdLookup[deletedShort.clientId];
             delete nextState.shorts[deletedShort.shortId];
             updateLocalStorage(nextState);
             return nextState;
@@ -142,8 +164,9 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -151,9 +174,10 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.READ_ALL_SHORTS_ERROR:
@@ -168,9 +192,12 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.READ_ALL_SHORTS_SUCCESS:
-            const shortCollection: IShortCollection = action.payload;
+            const shortCollection: Short[] = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                },
                 shorts: {
                     ...state.shorts
                 },
@@ -178,7 +205,8 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 lastReadAll: new Date(action.timestamp),
             };
-            shortCollection.shorts.forEach(short => {
+            shortCollection.forEach(short => {
+                nextState.clientIdLookup[short.clientId] = short;
                 nextState.shorts[short.shortId] = short;
             });
             updateLocalStorage(nextState);
@@ -193,8 +221,9 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -202,9 +231,10 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.READ_SHORT_ERROR:
@@ -219,9 +249,13 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.READ_SHORT_SUCCESS:
-            const retrievedShort: IShort = action.payload;
+            const retrievedShort: Short = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [retrievedShort.clientId]: retrievedShort,
+                },
                 shorts: {
                     ...state.shorts,
                     [retrievedShort.shortId]: retrievedShort,
@@ -241,23 +275,29 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case shortConstants.UPDATE_SHORT:
-            const pendingUpdatedShort: IShort = action.payload;
+            const pendingUpdatedShort: Short = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingUpdatedShort.clientId]: pendingUpdatedShort,
+                },
                 shorts: {
                     ...state.shorts,
                     [pendingUpdatedShort.shortId]: pendingUpdatedShort,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.UPDATE_SHORT_ERROR:
@@ -272,9 +312,13 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
             updateLocalStorage(nextState);
             return nextState;
         case shortConstants.UPDATE_SHORT_SUCCESS:
-            const updatedShort: IShort = action.payload;
+            const updatedShort: Short = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [updatedShort.clientId]: updatedShort,
+                },
                 shorts: {
                     ...state.shorts,
                     [updatedShort.shortId]: updatedShort,
@@ -294,8 +338,9 @@ const shortReducer = (state: IShortState = initState, action: IShortReducerActio
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 

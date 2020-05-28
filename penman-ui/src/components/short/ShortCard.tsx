@@ -1,14 +1,13 @@
 import React, { Component, ChangeEvent } from 'react';
 import M from 'materialize-css';
-import { IAuthenticatedUser, IShort } from '../../store/types';
+import { IAuthenticatedUser, Short } from '../../store/types';
+import { update, deleteEntity } from '../../store/actions/shortActions';
 
 export interface IShortCardProps {
     key: string;
-    short: IShort;
+    short: Short;
     user: IAuthenticatedUser;
     isOffline: boolean;
-    update: (user: IAuthenticatedUser, short: IShort, suppressTimeoutAlert: boolean) => any;
-    deleteEntity: (user: IAuthenticatedUser, short: IShort, suppressTimeoutAlert: boolean) => any;
 };
 
 interface IShortCardState {
@@ -92,7 +91,7 @@ class ShortCard extends Component<IShortCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.short, this.props.isOffline);
+        deleteEntity(this.props.user, this.props.short, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -106,15 +105,12 @@ class ShortCard extends Component<IShortCardProps> {
     }
 
     handleUpdate = () => {
-        const modifiedShort: IShort = {
-            ...this.props.short,
-            title: this.state.title,
-            body: this.state.body,
-            eventStart: this.state.eventStart,
-            eventEnd: this.state.eventEnd,
-            modifiedDate: new Date(),
-        };
-        this.props.update(this.props.user, modifiedShort, this.props.isOffline);
+        this.props.short.title = this.state.title;
+        this.props.short.body = this.state.body;
+        this.props.short.eventStart = this.state.eventStart;
+        this.props.short.eventEnd = this.state.eventEnd;
+        this.props.short.modifiedDate = new Date();
+        update(this.props.user, this.props.short, this.props.isOffline);
         this.setState({
             isEditing: false,
         });

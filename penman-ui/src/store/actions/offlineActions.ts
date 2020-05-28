@@ -4,7 +4,7 @@ import { apiConstants, offlineConstants } from '../../config/constants';
 
 export const replayMementos = (user: IAuthenticatedUser, replayableActions: IReplayableAction[], suppressTimeoutAlert = true) => {
     replayableActions
-        .forEach((replayableAction) => replayableAction.memento(user, suppressTimeoutAlert));
+        .forEach((replayableAction) => replayableAction.playAction(user, suppressTimeoutAlert));
 };
 
 export const ping = () => {

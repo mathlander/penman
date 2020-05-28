@@ -1,14 +1,13 @@
 import React, { Component, ChangeEvent } from 'react';
 import M from 'materialize-css';
-import { IAuthenticatedUser, ITimeline } from '../../store/types';
+import { IAuthenticatedUser, Timeline } from '../../store/types';
+import { update, deleteEntity } from '../../store/actions/timelineActions';
 
 export interface ITimelineCardProps {
     key: string;
-    timeline: ITimeline;
+    timeline: Timeline;
     user: IAuthenticatedUser;
     isOffline: boolean;
-    update: (user: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert: boolean) => any;
-    deleteEntity: (user: IAuthenticatedUser, timeline: ITimeline, suppressTimeoutAlert: boolean) => any;
 };
 
 interface ITimelineCardState {
@@ -76,7 +75,7 @@ class TimelineCard extends Component<ITimelineCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.timeline, this.props.isOffline);
+        deleteEntity(this.props.user, this.props.timeline, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -89,14 +88,11 @@ class TimelineCard extends Component<ITimelineCardProps> {
     }
 
     handleUpdate = () => {
-        const modifiedTimeline: ITimeline = {
-            ...this.props.timeline,
-            title: this.state.title,
-            eventStart: this.state.eventStart,
-            eventEnd: this.state.eventEnd,
-            modifiedDate: new Date(),
-        };
-        this.props.update(this.props.user, modifiedTimeline, this.props.isOffline);
+        this.props.timeline.title = this.state.title;
+        this.props.timeline.eventStart = this.state.eventStart;
+        this.props.timeline.eventEnd = this.state.eventEnd;
+        this.props.timeline.modifiedDate = new Date();
+        update(this.props.user, this.props.timeline, this.props.isOffline);
         this.setState({
             isEditing: false,
         });

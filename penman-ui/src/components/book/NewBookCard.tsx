@@ -1,6 +1,6 @@
 import React, { Component, ChangeEvent, MouseEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
-import { IRootState, IAuthenticatedUser, IBook } from '../../store/types';
+import { IRootState, Book, generateUuid } from '../../store/types'
 import { create } from '../../store/actions/bookActions';
 
 const mapStateToProps = (state: IRootState) => {
@@ -11,13 +11,7 @@ const mapStateToProps = (state: IRootState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: any) => {
-    return {
-        create: (user: IAuthenticatedUser, newBook: IBook, suppressTimeoutAlert: boolean) => dispatch(create(user, newBook, suppressTimeoutAlert)),
-    };
-};
-
-const localConnector = connect(mapStateToProps, mapDispatchToProps);
+const localConnector = connect(mapStateToProps);
 
 type PropsFromRedux = ConnectedProps<typeof localConnector>;
 type Props = PropsFromRedux;
@@ -44,14 +38,17 @@ class NewBookCard extends Component<Props> {
         e.preventDefault();
         const timestamp = Date.now();
         if (this.state.title.length) {
-            this.props.create(this.props.authenticatedUser, {
+            const book = new Book({
                 title: this.state.title,
                 timelineId: this.state.timelineId,
                 authorId: this.props.authenticatedUser.authorId,
                 createdDate: new Date(timestamp),
                 modifiedDate: new Date(timestamp),
-                bookId: -timestamp,
-            }, this.props.isOffline);
+                bookId: 0,
+                clientId: generateUuid(),
+                timelineClientId: '',
+            });
+            create(this.props.authenticatedUser, book, this.props.isOffline);
         }
         this.setState({
             title: '',

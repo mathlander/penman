@@ -1,25 +1,26 @@
 import React, { Component, ChangeEvent } from 'react';
+// import { useSelector } from 'react-redux';
 import M from 'materialize-css';
-import { IAuthenticatedUser, IBook, IChapter, ITimeline } from '../../store/types';
+import { IAuthenticatedUser, Book, Chapter, ITimeline } from '../../store/types';
+import { update, deleteEntity } from '../../store/actions/bookActions';
 
 export interface IBookCardProps {
     key: string;
-    book: IBook;
+    book: Book;
     user: IAuthenticatedUser;
     isOffline: boolean;
-    chapters: IChapter[],
-    update: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => any;
-    deleteEntity: (user: IAuthenticatedUser, book: IBook, suppressTimeoutAlert: boolean) => any;
-    readTimelineById: (timelineId: number | null) => ITimeline | null;
+    chapters: Chapter[],
 };
 
 interface IBookCardState {
     toolTipInstances: M.Tooltip[];
     title: string;
-    chapters: IChapter[];
+    chapters: Chapter[];
     timelineId: number | null;
     timeline: ITimeline | null;
     isEditing: boolean;
+    // add a look-up by timelineClientId when extending
+    //timelineClientId: UUID;
 };
 
 class BookCard extends Component<IBookCardProps> {
@@ -57,7 +58,7 @@ class BookCard extends Component<IBookCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.book, this.props.isOffline);
+        deleteEntity(this.props.user, this.props.book, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -69,12 +70,9 @@ class BookCard extends Component<IBookCardProps> {
     }
 
     handleUpdate = () => {
-        const modifiedBook: IBook = {
-            ...this.props.book,
-            title: this.state.title,
-            modifiedDate: new Date(),
-        };
-        this.props.update(this.props.user, modifiedBook, this.props.isOffline);
+        this.props.book.title = this.state.title;
+        this.props.book.modifiedDate = new Date();
+        update(this.props.user, this.props.book, this.props.isOffline);
         this.setState({
             isEditing: false,
         });
@@ -103,7 +101,8 @@ class BookCard extends Component<IBookCardProps> {
     // }
 
     render() {
-        const { bookId, title, createdDate, modifiedDate } = this.props.book;
+        const { bookId, title, createdDate, modifiedDate, timelineId } = this.props.book;
+        // const timeline = useSelector((state: IRootState) => timelineId === null ? null : state.timeline.timelines[timelineId]);
         const ccTooltip = `
             <p className="created-date">Created: ${createdDate && createdDate.toLocaleDateString()}</p>
             <p className="modified-date">Modified: ${modifiedDate && modifiedDate.toLocaleDateString()}</p>

@@ -1,14 +1,13 @@
 import React, { Component, ChangeEvent } from 'react';
 import M from 'materialize-css';
-import { IAuthenticatedUser, IPersonification } from '../../store/types';
+import { update, deleteEntity } from '../../store/actions/personificationActions';
+import { IAuthenticatedUser, Personification } from '../../store/types';
 
 export interface IPersonificationCardProps {
     key: string;
-    personification: IPersonification;
+    personification: Personification;
     user: IAuthenticatedUser;
     isOffline: boolean;
-    update: (user: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert: boolean) => any;
-    deleteEntity: (user: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert: boolean) => any;
 };
 
 interface IPersonificationCardState {
@@ -69,7 +68,7 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.personification, this.props.isOffline);
+        deleteEntity(this.props.user, this.props.personification, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -83,15 +82,12 @@ class PersonificationCard extends Component<IPersonificationCardProps> {
     }
 
     handleUpdate = () => {
-        const modifiedPersonification: IPersonification = {
-            ...this.props.personification,
-            firstName: this.state.firstName,
-            middleName: this.state.middleName,
-            lastName: this.state.lastName,
-            birthday: this.state.birthday,
-            modifiedDate: new Date(),
-        };
-        this.props.update(this.props.user, modifiedPersonification, this.props.isOffline);
+        this.props.personification.firstName = this.state.firstName;
+        this.props.personification.middleName = this.state.middleName;
+        this.props.personification.lastName = this.state.lastName;
+        this.props.personification.birthday = this.state.birthday;
+        this.props.personification.modifiedDate = new Date();
+        update(this.props.user, this.props.personification, this.props.isOffline);
         this.setState({
             isEditing: false,
         });

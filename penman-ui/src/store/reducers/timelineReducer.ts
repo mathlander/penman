@@ -1,5 +1,6 @@
 import { defaultDate, timelineConstants, offlineConstants } from '../../config/constants';
-import { ITimeline, ITimelineCollection, ITimelineState, ITimelineErrorState, ITimelineReducerAction } from '../types';
+import { Timeline, UUID, ITimelineState, ITimelineErrorState, ITimelineReducerAction, restoreOfflineWorkItemFromJSON } from '../types';
+import { TimelineActionMemento } from '../actions/timelineActions';
 
 const nullErrorState: ITimelineErrorState = {
     internalErrorMessage: null,
@@ -7,29 +8,38 @@ const nullErrorState: ITimelineErrorState = {
 };
 
 const readLocalStorage = () : ITimelineState => {
-    let localStorageState: ITimelineState = JSON.parse(localStorage.getItem(timelineConstants.TIMELINE_LOCAL_STORAGE_KEY) || 'null') || {
+    let clientIdLookup: Record<UUID, Timeline> = {};
+    let localStorageState: ITimelineState = JSON.parse(localStorage.getItem(timelineConstants.TIMELINE_LOCAL_STORAGE_KEY) || 'null', (key, value) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => TimelineActionMemento.hydrate(memento));
+        } else if (key === 'shorts') {
+            const timelineRecords: Record<number, Timeline> = value.reduce((map: Record<number, Timeline>, serializedObj: string) => {
+                const timeline = restoreOfflineWorkItemFromJSON<Timeline>(serializedObj, Timeline);
+                clientIdLookup[timeline.clientId] = timeline;
+                return map[timeline.timelineId] = timeline;
+            }, {});
+            return timelineRecords;
+        } else if (key === '') {
+            value.clientIdLookup = clientIdLookup;
+        } else return value;
+    }) || {
+        clientIdLookup: {},
         timelines: {},
         timelineErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
-    Object.values(localStorageState.timelines).forEach((timeline) => {
-        timeline.eventStart = new Date(timeline.eventStart);
-        timeline.eventEnd = new Date(timeline.eventEnd);
-        timeline.createdDate = new Date(timeline.createdDate);
-        timeline.modifiedDate = new Date(timeline.modifiedDate);
-    });
     localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
 const updateLocalStorage = (state: ITimelineState) : void => {
     localStorage.setItem(timelineConstants.TIMELINE_LOCAL_STORAGE_KEY, JSON.stringify({
-        timelines: state.timelines,
+        timelines: Object.values(state.timelines).map(timeline => timeline.toSerializedJSON()),
         timelineErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -48,17 +58,22 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             return nextState;
 
         case timelineConstants.CREATE_NEW_TIMELINE:
-            const pendingNewTimeline: ITimeline = action.payload;
+            const pendingNewTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingNewTimeline.clientId]: pendingNewTimeline,
+                },
                 timelines: {
                     ...state.timelines,
                     [-action.timestamp]: pendingNewTimeline,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.CREATE_NEW_TIMELINE_ERROR:
@@ -74,9 +89,13 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             return nextState;
         case timelineConstants.CREATE_NEW_TIMELINE_SUCCESS:
             // consider persisting ITimeline objects in localStorage, they're light and rare (per author)
-            const newTimeline: ITimeline = action.payload;
+            const newTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [newTimeline.clientId]: newTimeline,
+                },
                 timelines: {
                     ...state.timelines,
                     [newTimeline.timelineId]: newTimeline,
@@ -97,19 +116,22 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case timelineConstants.DELETE_TIMELINE:
-            const deletedTimeline: ITimeline = action.payload;
+            const deletedTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            delete nextState.clientIdLookup[deletedTimeline.clientId];
             delete nextState.timelines[deletedTimeline.timelineId];
             updateLocalStorage(nextState);
             return nextState;
@@ -142,8 +164,9 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -151,9 +174,10 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.READ_ALL_TIMELINES_ERROR:
@@ -168,9 +192,12 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.READ_ALL_TIMELINES_SUCCESS:
-            const timelineCollection: ITimelineCollection = action.payload;
+            const timelineCollection: Timeline[] = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                },
                 timelines: {
                     ...state.timelines
                 },
@@ -178,7 +205,8 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 lastReadAll: new Date(action.timestamp),
             };
-            timelineCollection.timelines.forEach(timeline => {
+            timelineCollection.forEach(timeline => {
+                nextState.clientIdLookup[timeline.clientId] = timeline;
                 nextState.timelines[timeline.timelineId] = timeline;
             });
             updateLocalStorage(nextState);
@@ -193,8 +221,9 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -202,9 +231,10 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.READ_TIMELINE_ERROR:
@@ -219,9 +249,13 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.READ_TIMELINE_SUCCESS:
-            const retrievedTimeline: ITimeline = action.payload;
+            const retrievedTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [retrievedTimeline.clientId]: retrievedTimeline,
+                },
                 timelines: {
                     ...state.timelines,
                     [retrievedTimeline.timelineId]: retrievedTimeline,
@@ -241,23 +275,29 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case timelineConstants.UPDATE_TIMELINE:
-            const pendingUpdatedTimeline: ITimeline = action.payload;
+            const pendingUpdatedTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingUpdatedTimeline.clientId]: pendingUpdatedTimeline,
+                },
                 timelines: {
                     ...state.timelines,
                     [pendingUpdatedTimeline.timelineId]: pendingUpdatedTimeline,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.UPDATE_TIMELINE_ERROR:
@@ -272,9 +312,13 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
             updateLocalStorage(nextState);
             return nextState;
         case timelineConstants.UPDATE_TIMELINE_SUCCESS:
-            const updatedTimeline: ITimeline = action.payload;
+            const updatedTimeline: Timeline = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [updatedTimeline.clientId]: updatedTimeline,
+                },
                 timelines: {
                     ...state.timelines,
                     [updatedTimeline.timelineId]: updatedTimeline,
@@ -294,8 +338,9 @@ const timelineReducer = (state: ITimelineState = initState, action: ITimelineRed
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 

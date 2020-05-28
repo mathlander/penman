@@ -1,14 +1,13 @@
 import React, { Component, ChangeEvent } from 'react';
 import M from 'materialize-css';
-import { IAuthenticatedUser, IPrompt } from '../../store/types';
+import { IAuthenticatedUser, Prompt } from '../../store/types';
+import { update, deleteEntity } from '../../store/actions/promptActions';
 
 export interface IPromptCardProps {
     key: string;
-    prompt: IPrompt;
+    prompt: Prompt;
     user: IAuthenticatedUser;
     isOffline: boolean;
-    update: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => any;
-    deleteEntity: (user: IAuthenticatedUser, prompt: IPrompt, suppressTimeoutAlert: boolean) => any;
 };
 
 interface IPromptCardState {
@@ -63,7 +62,7 @@ class PromptCard extends Component<IPromptCardProps> {
 
     handleDelete = (e: any) => {
         e.preventDefault();
-        this.props.deleteEntity(this.props.user, this.props.prompt, this.props.isOffline);
+        deleteEntity(this.props.user, this.props.prompt, this.props.isOffline);
     }
 
     handleCancel = () => {
@@ -75,13 +74,10 @@ class PromptCard extends Component<IPromptCardProps> {
     }
 
     handleUpdate = () => {
-        const modifiedPrompt: IPrompt = {
-            ...this.props.prompt,
-            title: this.state.title,
-            body: this.state.body,
-            modifiedDate: new Date(),
-        };
-        this.props.update(this.props.user, modifiedPrompt, this.props.isOffline);
+        this.props.prompt.title = this.state.title;
+        this.props.prompt.body = this.state.body;
+        this.props.prompt.modifiedDate = new Date();
+        update(this.props.user, this.props.prompt, this.props.isOffline);
         this.setState({
             isEditing: false,
         });

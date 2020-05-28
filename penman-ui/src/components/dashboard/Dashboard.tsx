@@ -63,10 +63,8 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
-    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
         visitRecentItem: (scrollspyId: string) => dispatch(visitRecentItem(scrollspyId)),
-        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
     };
 };
 
@@ -77,8 +75,8 @@ type Props = PropsFromRedux;
 
 class Dashboard extends Component<Props> {
     render() {
-        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
-        if (isTokenExpired(authenticatedUser, isOffline)) {
+        const { authenticatedUser, isOffline } = this.props;
+        if (isAuthTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         return (

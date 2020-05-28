@@ -1,5 +1,6 @@
 import { defaultDate, promptConstants, offlineConstants } from '../../config/constants';
-import { IPrompt, IPromptCollection, IPromptState, IPromptErrorState, IPromptReducerAction } from '../types';
+import { Prompt, UUID, IPromptState, IPromptErrorState, IPromptReducerAction, restoreOfflineWorkItemFromJSON } from '../types';
+import { PromptActionMemento } from '../actions/promptActions';
 
 const nullErrorState: IPromptErrorState = {
     internalErrorMessage: null,
@@ -7,27 +8,38 @@ const nullErrorState: IPromptErrorState = {
 };
 
 const readLocalStorage = () : IPromptState => {
-    let localStorageState: IPromptState = JSON.parse(localStorage.getItem(promptConstants.PROMPT_LOCAL_STORAGE_KEY) || 'null') || {
+    let clientIdLookup: Record<UUID, Prompt> = {};
+    let localStorageState: IPromptState = JSON.parse(localStorage.getItem(promptConstants.PROMPT_LOCAL_STORAGE_KEY) || 'null', (key, value) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => PromptActionMemento.hydrate(memento));
+        } else if (key === 'prompts') {
+            const promptRecords: Record<number, Prompt> = value.reduce((map: Record<number, Prompt>, serializedObj: string) => {
+                const prompt = restoreOfflineWorkItemFromJSON<Prompt>(serializedObj, Prompt);
+                clientIdLookup[prompt.clientId] = prompt;
+                return map[prompt.promptId] = prompt;
+            }, {});
+            return promptRecords;
+        } else if (key === '') {
+            value.clientIdLookup = clientIdLookup;
+        } else return value;
+    }) || {
+        clientIdLookup: {},
         prompts: {},
         promptErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
-    Object.values(localStorageState.prompts).forEach((prompt) => {
-        prompt.createdDate = new Date(prompt.createdDate);
-        prompt.modifiedDate = new Date(prompt.modifiedDate);
-    });
     localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
 const updateLocalStorage = (state: IPromptState) : void => {
     localStorage.setItem(promptConstants.PROMPT_LOCAL_STORAGE_KEY, JSON.stringify({
-        prompts: state.prompts,
+        prompts: Object.values(state.prompts).map(prompt => prompt.toSerializedJSON()),
         promptErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -46,17 +58,22 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             return nextState;
 
         case promptConstants.CREATE_NEW_PROMPT:
-            const pendingNewPrompt: IPrompt = action.payload;
+            const pendingNewPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingNewPrompt.clientId]: pendingNewPrompt,
+                },
                 prompts: {
                     ...state.prompts,
                     [-action.timestamp]: pendingNewPrompt,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.CREATE_NEW_PROMPT_ERROR:
@@ -72,9 +89,13 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             return nextState;
         case promptConstants.CREATE_NEW_PROMPT_SUCCESS:
             // consider persisting IPrompt objects in localStorage, they're light and rare (per author)
-            const newPrompt: IPrompt = action.payload;
+            const newPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [newPrompt.clientId]: newPrompt,
+                },
                 prompts: {
                     ...state.prompts,
                     [newPrompt.promptId]: newPrompt,
@@ -95,19 +116,22 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case promptConstants.DELETE_PROMPT:
-            const deletedPrompt: IPrompt = action.payload;
+            const deletedPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            delete nextState.clientIdLookup[deletedPrompt.clientId];
             delete nextState.prompts[deletedPrompt.promptId];
             updateLocalStorage(nextState);
             return nextState;
@@ -140,8 +164,9 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -149,9 +174,10 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.READ_ALL_PROMPTS_ERROR:
@@ -166,9 +192,12 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.READ_ALL_PROMPTS_SUCCESS:
-            const promptCollection: IPromptCollection = action.payload;
+            const promptCollection: Prompt[] = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                },
                 prompts: {
                     ...state.prompts
                 },
@@ -176,7 +205,8 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 lastReadAll: new Date(action.timestamp),
             };
-            promptCollection.prompts.forEach(prompt => {
+            promptCollection.forEach(prompt => {
+                nextState.clientIdLookup[prompt.clientId] = prompt;
                 nextState.prompts[prompt.promptId] = prompt;
             });
             updateLocalStorage(nextState);
@@ -191,8 +221,9 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -200,9 +231,10 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.READ_PROMPT_ERROR:
@@ -217,9 +249,13 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.READ_PROMPT_SUCCESS:
-            const retrievedPrompt: IPrompt = action.payload;
+            const retrievedPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [retrievedPrompt.clientId]: retrievedPrompt,
+                },
                 prompts: {
                     ...state.prompts,
                     [retrievedPrompt.promptId]: retrievedPrompt,
@@ -239,23 +275,29 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case promptConstants.UPDATE_PROMPT:
-            const pendingUpdatedPrompt: IPrompt = action.payload;
+            const pendingUpdatedPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingUpdatedPrompt.clientId]: pendingUpdatedPrompt,
+                },
                 prompts: {
                     ...state.prompts,
                     [pendingUpdatedPrompt.promptId]: pendingUpdatedPrompt,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.UPDATE_PROMPT_ERROR:
@@ -270,9 +312,13 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
             updateLocalStorage(nextState);
             return nextState;
         case promptConstants.UPDATE_PROMPT_SUCCESS:
-            const updatedPrompt: IPrompt = action.payload;
+            const updatedPrompt: Prompt = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [updatedPrompt.clientId]: updatedPrompt,
+                },
                 prompts: {
                     ...state.prompts,
                     [updatedPrompt.promptId]: updatedPrompt,
@@ -292,8 +338,9 @@ const promptReducer = (state: IPromptState = initState, action: IPromptReducerAc
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 

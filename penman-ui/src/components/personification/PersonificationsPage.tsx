@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { push } from 'connected-react-router';
 import M from 'materialize-css';
-import { IRootState, IAuthenticatedUser, INewPersonification, IPersonification } from '../../store/types';
+import { IRootState, IAuthenticatedUser, IPersonification } from '../../store/types';
 import { isAuthTokenExpired, refreshToken } from '../../store/actions/authActions';
 import { create, read, readAll, update, deleteEntity } from '../../store/actions/personificationActions';
 import { visitRecentItemClear } from '../../store/actions/dashboardActions';
@@ -25,15 +25,8 @@ const mapStateToProps = (state: IRootState) => {
 };
 
 const mapDispatchToProps = (dispatch: any) => {
-    const refresh = (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => dispatch(refreshToken(user, suppressTimeoutAlert));
     return {
         visitRecentItemClear: () => dispatch(visitRecentItemClear()),
-        isTokenExpired: (user: IAuthenticatedUser, suppressTimeoutAlert: boolean) => isAuthTokenExpired(user, suppressTimeoutAlert, refresh),
-        create: (user: IAuthenticatedUser, newPersonification: INewPersonification, suppressTimeoutAlert: boolean) => dispatch(create(user, newPersonification, suppressTimeoutAlert)),
-        read: (user: IAuthenticatedUser, personificationId: number, suppressTimeoutAlert: boolean) => dispatch(read(user, personificationId, suppressTimeoutAlert)),
-        readAll: (user: IAuthenticatedUser, lastReadAll: Date, suppressTimeoutAlert: boolean) => dispatch(readAll(user, lastReadAll, suppressTimeoutAlert)),
-        update: (user: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert: boolean) => dispatch(update(user, personification, suppressTimeoutAlert)),
-        deleteEntity: (user: IAuthenticatedUser, personification: IPersonification, suppressTimeoutAlert: boolean) => dispatch(deleteEntity(user, personification, suppressTimeoutAlert)),
     };
 };
 
@@ -58,7 +51,7 @@ class PersonificationsPage extends Component<Props> {
     }
 
     componentDidMount() {
-        this.props.readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
+        readAll(this.props.authenticatedUser, this.props.lastReadAll, this.props.isOffline);
         const scrollspied = document.querySelectorAll('.scrollspy');
         const scrollspyInstances = M.ScrollSpy.init(scrollspied, {
             scrollOffset: 35,
@@ -77,9 +70,9 @@ class PersonificationsPage extends Component<Props> {
     }
 
     render() {
-        const { authenticatedUser, isOffline, isTokenExpired } = this.props;
+        const { authenticatedUser, isOffline } = this.props;
         const loaderDisplayStyle = (this.props.isLoading && this.props.personificationsCount === 0 ? 'block' : 'none');
-        if (isTokenExpired(authenticatedUser, isOffline)) {
+        if (isAuthTokenExpired(authenticatedUser, isOffline)) {
             push('/signin');
         }
         return (
@@ -103,8 +96,6 @@ class PersonificationsPage extends Component<Props> {
                                 personification={personification}
                                 user={authenticatedUser}
                                 isOffline={isOffline}
-                                update={this.props.update}
-                                deleteEntity={this.props.deleteEntity}
                             />
                         )}
                     </div>

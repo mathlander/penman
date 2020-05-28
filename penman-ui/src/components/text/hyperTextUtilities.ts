@@ -373,3 +373,11 @@ export const placeCaretAfterTextNode = (textNode: Node, blinkingCursor: Element)
     textParent.insertBefore(textNode, blinkingCursor);
 };
 
+
+
+/** Optimistically... the only code we'll need going forward */
+
+export const insertCaretAtNthPosition = (textNode: Node, blinkingCursor: Element) => {
+    // TODO...
+};
+

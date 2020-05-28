@@ -1,5 +1,6 @@
 import { defaultDate, personificationConstants, offlineConstants } from '../../config/constants';
-import { IPersonification, IPersonificationCollection, IPersonificationState, IPersonificationErrorState, IPersonificationReducerAction } from '../types';
+import { Personification, UUID, IPersonificationState, IPersonificationErrorState, IPersonificationReducerAction, restoreOfflineWorkItemFromJSON } from '../types';
+import { PersonificationActionMemento } from '../actions/personificationActions';
 
 const nullErrorState: IPersonificationErrorState = {
     internalErrorMessage: null,
@@ -7,28 +8,38 @@ const nullErrorState: IPersonificationErrorState = {
 };
 
 const readLocalStorage = () : IPersonificationState => {
-    let localStorageState: IPersonificationState = JSON.parse(localStorage.getItem(personificationConstants.PERSONIFICATION_LOCAL_STORAGE_KEY) || 'null') || {
+    let clientIdLookup: Record<UUID, Personification> = {};
+    let localStorageState: IPersonificationState = JSON.parse(localStorage.getItem(personificationConstants.PERSONIFICATION_LOCAL_STORAGE_KEY) || 'null', (key, value) => {
+        if (key === 'pendingActions' || key === 'offlineActionQueue') {
+            return value.map((memento: string) => PersonificationActionMemento.hydrate(memento));
+        } else if (key === 'personifications') {
+            const personificationRecords: Record<number, Personification> = value.reduce((map: Record<number, Personification>, serializedObj: string) => {
+                const personification = restoreOfflineWorkItemFromJSON<Personification>(serializedObj, Personification);
+                clientIdLookup[personification.clientId] = personification;
+                return map[personification.personificationId] = personification;
+            }, {});
+            return personificationRecords;
+        } else if (key === '') {
+            value.clientIdLookup = clientIdLookup;
+        } else return value;
+    }) || {
+        clientIdLookup: {},
         personifications: {},
         personificationErrorState: nullErrorState,
         pendingActions: [],
         offlineActionQueue: [],
         lastReadAll: defaultDate,
     };
-    Object.values(localStorageState.personifications).forEach((personification) => {
-        personification.birthday = new Date(personification.birthday);
-        personification.createdDate = new Date(personification.createdDate);
-        personification.modifiedDate = new Date(personification.modifiedDate);
-    });
     localStorageState.lastReadAll = (localStorageState.lastReadAll && new Date(localStorageState.lastReadAll)) || defaultDate;
     return localStorageState;
 };
 
 const updateLocalStorage = (state: IPersonificationState) : void => {
     localStorage.setItem(personificationConstants.PERSONIFICATION_LOCAL_STORAGE_KEY, JSON.stringify({
-        personifications: state.personifications,
+        personifications: Object.values(state.personifications).map(personification => personification.toSerializedJSON()),
         personificationErrorState: nullErrorState,
-        pendingActions: state.pendingActions,
-        offlineActionQueue: state.offlineActionQueue,
+        pendingActions: state.pendingActions.map(actionMemento => actionMemento.serializedData),
+        offlineActionQueue: state.offlineActionQueue.map(actionMemento => actionMemento.serializedData),
         lastReadAll: (state.lastReadAll && state.lastReadAll.toISOString()) || defaultDate.toISOString(),
     }));
 };
@@ -47,17 +58,22 @@ const personificationReducer = (state: IPersonificationState = initState, action
             return nextState;
 
         case personificationConstants.CREATE_NEW_PERSONIFICATION:
-            const pendingNewPersonification: IPersonification = action.payload;
+            const pendingNewPersonification: Personification = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingNewPersonification.clientId]: pendingNewPersonification,
+                },
                 personifications: {
                     ...state.personifications,
                     [-action.timestamp]: pendingNewPersonification,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.CREATE_NEW_PERSONIFICATION_ERROR:
@@ -73,9 +89,13 @@ const personificationReducer = (state: IPersonificationState = initState, action
             return nextState;
         case personificationConstants.CREATE_NEW_PERSONIFICATION_SUCCESS:
             // consider persisting IPersonification objects in localStorage, they're light and rare (per author)
-            const newPersonification: IPersonification = action.payload;
+            const newPersonification: Personification = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [newPersonification.clientId]: newPersonification,
+                },
                 personifications: {
                     ...state.personifications,
                     [newPersonification.personificationId]: newPersonification,
@@ -96,19 +116,22 @@ const personificationReducer = (state: IPersonificationState = initState, action
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case personificationConstants.DELETE_PERSONIFICATION:
-            const deletedPersonification: IPersonification = action.payload;
+            const deletedPersonification: Personification = action.payload;
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
+            delete nextState.clientIdLookup[deletedPersonification.clientId];
             delete nextState.personifications[deletedPersonification.personificationId];
             updateLocalStorage(nextState);
             return nextState;
@@ -141,8 +164,9 @@ const personificationReducer = (state: IPersonificationState = initState, action
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -150,9 +174,10 @@ const personificationReducer = (state: IPersonificationState = initState, action
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.READ_ALL_PERSONIFICATIONS_ERROR:
@@ -167,9 +192,12 @@ const personificationReducer = (state: IPersonificationState = initState, action
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.READ_ALL_PERSONIFICATIONS_SUCCESS:
-            const personificationCollection: IPersonificationCollection = action.payload;
+            const personificationCollection: Personification[] = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                },
                 personifications: {
                     ...state.personifications
                 },
@@ -177,7 +205,8 @@ const personificationReducer = (state: IPersonificationState = initState, action
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 lastReadAll: new Date(action.timestamp),
             };
-            personificationCollection.personifications.forEach(personification => {
+            personificationCollection.forEach(personification => {
+                nextState.clientIdLookup[personification.clientId] = personification;
                 nextState.personifications[personification.personificationId] = personification;
             });
             updateLocalStorage(nextState);
@@ -192,8 +221,9 @@ const personificationReducer = (state: IPersonificationState = initState, action
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
@@ -201,9 +231,10 @@ const personificationReducer = (state: IPersonificationState = initState, action
             nextState = {
                 ...state,
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.READ_PERSONIFICATION_ERROR:
@@ -218,9 +249,13 @@ const personificationReducer = (state: IPersonificationState = initState, action
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.READ_PERSONIFICATION_SUCCESS:
-            const retrievedPersonification: IPersonification = action.payload;
+            const retrievedPersonification: Personification = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [retrievedPersonification.clientId]: retrievedPersonification,
+                },
                 personifications: {
                     ...state.personifications,
                     [retrievedPersonification.personificationId]: retrievedPersonification,
@@ -240,23 +275,29 @@ const personificationReducer = (state: IPersonificationState = initState, action
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
         case personificationConstants.UPDATE_PERSONIFICATION:
-            const pendingUpdatedPersonification: IPersonification = action.payload;
+            const pendingUpdatedPersonification: Personification = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [pendingUpdatedPersonification.clientId]: pendingUpdatedPersonification,
+                },
                 personifications: {
                     ...state.personifications,
                     [pendingUpdatedPersonification.personificationId]: pendingUpdatedPersonification,
                 },
                 // handle replayed actions
-                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp).concat(action),
+                pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
                 offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.pendingActions.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.UPDATE_PERSONIFICATION_ERROR:
@@ -271,9 +312,13 @@ const personificationReducer = (state: IPersonificationState = initState, action
             updateLocalStorage(nextState);
             return nextState;
         case personificationConstants.UPDATE_PERSONIFICATION_SUCCESS:
-            const updatedPersonification: IPersonification = action.payload;
+            const updatedPersonification: Personification = action.payload;
             nextState = {
                 ...state,
+                clientIdLookup: {
+                    ...state.clientIdLookup,
+                    [updatedPersonification.clientId]: updatedPersonification,
+                },
                 personifications: {
                     ...state.personifications,
                     [updatedPersonification.personificationId]: updatedPersonification,
@@ -293,8 +338,9 @@ const personificationReducer = (state: IPersonificationState = initState, action
                         displayErrorMessage: offlineConstants.API_UNREACHABLE_DISPLAY_MESSAGE,
                     },
                 pendingActions: state.pendingActions.filter(pendingAction => pendingAction.timestamp !== action.timestamp),
-                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp).concat(action),
+                offlineActionQueue: state.offlineActionQueue.filter(queuedAction => queuedAction.timestamp !== action.timestamp),
             };
+            if (action.memento) nextState.offlineActionQueue.push(action.memento);
             updateLocalStorage(nextState);
             return nextState;
 
