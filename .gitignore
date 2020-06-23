@@ -1,4 +1,5 @@
 .vscode
+penman-ui/build
 penman-ui/node_modules
 PenmanApi/bin
 PenmanApi/obj
