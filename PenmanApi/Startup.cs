@@ -67,7 +67,7 @@ namespace PenmanApi
             // The appsettings.json and appsettings.<environmentName>.json configuration files were read in
             // Program.cs initialization.  Call Configuration.GetSection("<SectionName>") to access the configured
             // values.
-            var jwtSection = Configuration.GetSection("JwtSection");
+            var jwtSection = Configuration.GetSection("JwtConfig");
             var authConfig = jwtSection.Get<AuthConfig>();
             var secretKey = Encoding.ASCII.GetBytes(authConfig.Secret);
             services.AddAuthentication(options => {
