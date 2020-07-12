@@ -11,3 +11,79 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/* colors */
+:root {
+  --primary: #FFE9D2;
+  --secondary: #FFE1C4;
+  --title: #FF8816;
+}
+
+
+/* layout styles */
+nav {
+  background: var(--primary);
+  border-bottom: 10px solid var(--secondary);
+}
+
+nav a {
+  text-transform: uppercase;
+  color: var(--title);
+}
+
+nav a span {
+  font-weight: bold;
+}
+
+nav .sidebar-trigger {
+  margin: 0;
+}
+
+
+/* tooltips */
+.created-date {
+  font-size: 10px;
+  text-align: left;
+}
+
+.modified-date {
+  font-size: 10px;
+  text-align: left;
+}
+
+
+/* hypertext */
+.inline-editable:hover {
+  background: #E8F3FF;
+}
+
+
+/* prompts styles */
+.prompts {
+  margin-top: 20px;
+}
+
+.prompt .card-content p {
+  text-align: left;
+}
+
+/* .prompt-details {
+  grid-area: inherit;
+  margin-top: 6px;
+}
+
+.prompt-delete {
+  grid-area: inherit;
+  position: absolute;
+  bottom: 0px;
+  right: 9px;
+} */
+
+.prompt-title {
+  font-weight: bold;
+}
+
+.prompt-body {
+  font-size: 0.8em;
+}
