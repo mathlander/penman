@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
@@ -124,6 +125,7 @@ namespace PenmanApi
             // Alternatively, the EmailBasedIdProvider may be used if the email claim should be used as the userId,
             // but this goes against the design of the current API, since users may modify the email specified in
             // their profile.
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
             // Scoped instances are generated anew for each request.

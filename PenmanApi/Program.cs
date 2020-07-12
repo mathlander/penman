@@ -33,7 +33,7 @@ namespace PenmanApi
                         .ConfigureKestrel(serverOptions => {
                             serverOptions.ConfigureHttpsDefaults(listenOptions => {
                                 var certificatePath = Path.Join(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "penman.mathlander.pfx");
-                                listenOptions.ServerCertificate = new X509Certificate2(certificatePath, "simple");
+                                listenOptions.ServerCertificate = new X509Certificate2(certificatePath, "mathlander");
                             });
                         })
                         .UseKestrel(options => {
